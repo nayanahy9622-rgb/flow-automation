@@ -10,6 +10,7 @@ export type ConnectorAuth = {
   scope?: string;
   connectedAt: number;
   meta: string | null;
+  providerData?: Record<string, string>;
 };
 
 const dir = path.join(process.cwd(), ".flowos");
@@ -18,15 +19,11 @@ const file = path.join(dir, "connectors.json");
 function encryptionSecret(): string {
   const configured = process.env.ENCRYPTION_KEY;
   if (configured) return configured;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("ENCRYPTION_KEY must be configured in production");
-  }
+  if (process.env.NODE_ENV === "production") throw new Error("ENCRYPTION_KEY must be configured in production");
   return "flowos-local-development-only-key";
 }
 
-function hashKey(): Buffer {
-  return createHash("sha256").update(encryptionSecret()).digest();
-}
+function hashKey(): Buffer { return createHash("sha256").update(encryptionSecret()).digest(); }
 
 function encrypt(text: string): string {
   const iv = randomBytes(12);
@@ -43,37 +40,19 @@ function decrypt(text: string): string {
 }
 
 function load(): Record<string, ConnectorAuth> {
+  if (!fs.existsSync(file)) return {};
   try {
-    if (!fs.existsSync(file)) return {};
     const raw = fs.readFileSync(file, "utf8");
     return JSON.parse(raw.startsWith("{") && raw.includes('"iv"') ? decrypt(raw) : raw);
-  } catch {
-    return {};
-  }
+  } catch { return {}; }
 }
 
 function save(data: Record<string, ConnectorAuth>): void {
-  const text = JSON.stringify(data, null, 2);
   fs.mkdirSync(dir, {recursive: true});
-  fs.writeFileSync(file, encrypt(text), {encoding: "utf8", mode: 0o600});
+  fs.writeFileSync(file, encrypt(JSON.stringify(data, null, 2)), {encoding: "utf8", mode: 0o600});
 }
 
-export function getConnector(id: string): ConnectorAuth | undefined {
-  return load()[`connector:${id}`];
-}
-
-export function setConnector(id: string, auth: ConnectorAuth): void {
-  const data = load();
-  data[`connector:${id}`] = auth;
-  save(data);
-}
-
-export function removeConnector(id: string): void {
-  const data = load();
-  delete data[`connector:${id}`];
-  save(data);
-}
-
-export function listAuth(): Record<string, ConnectorAuth> {
-  return load();
-}
+export function getConnector(id: string): ConnectorAuth | undefined { return load()[`connector:${id}`]; }
+export function setConnector(id: string, auth: ConnectorAuth): void { const data = load(); data[`connector:${id}`] = auth; save(data); }
+export function removeConnector(id: string): void { const data = load(); delete data[`connector:${id}`]; save(data); }
+export function listAuth(): Record<string, ConnectorAuth> { return load(); }
