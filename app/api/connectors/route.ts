@@ -9,10 +9,12 @@ export async function GET() {
     status: auth[`connector:${c.id}`] ? "connected" : c.status === "error" ? "error" : "available",
     meta: auth[`connector:${c.id}`]?.meta ?? null,
   }));
-  return NextResponse.json({data});
+  return NextResponse.json({data}, {headers: {"cache-control": "no-store"}});
 }
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  return NextResponse.json({ok: true, connector: body, status: "connection_pending"}, {status: 202});
+export async function POST() {
+  return NextResponse.json(
+    {ok: false, error: "Use /api/connectors/:id/connect to start a real provider connection."},
+    {status: 405, headers: {allow: "GET"}}
+  );
 }
