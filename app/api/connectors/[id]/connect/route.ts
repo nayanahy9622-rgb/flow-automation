@@ -41,6 +41,7 @@ export async function GET(req: Request, {params}: {params: Promise<{id: string}>
   const p = getProvider(id);
   if (!p) return NextResponse.json({error: "unknown connector"}, {status: 404});
   if (id === "shopify") return NextResponse.redirect(new URL("/connectors/shopify", process.env.APP_URL || req.url));
+  if (id === "gmail") return NextResponse.redirect(new URL("/api/connectors/gmail/oauth", process.env.APP_URL || req.url));
 
   const missing = missingCredentials(p);
   if (missing.length) {
