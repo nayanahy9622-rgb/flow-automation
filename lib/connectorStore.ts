@@ -4,16 +4,28 @@ import * as path from "path";
 
 export type ConnectorAuth = {
   accessToken: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  tokenType?: string;
+  scope?: string;
   connectedAt: number;
   meta: string | null;
 };
 
 const dir = path.join(process.cwd(), ".flowos");
 const file = path.join(dir, "connectors.json");
-const secret = process.env.ENCRYPTION_KEY || "flowos-local-dev-key";
+
+function encryptionSecret(): string {
+  const configured = process.env.ENCRYPTION_KEY;
+  if (configured) return configured;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ENCRYPTION_KEY must be configured in production");
+  }
+  return "flowos-local-development-only-key";
+}
 
 function hashKey(): Buffer {
-  return createHash("sha256").update(secret).digest();
+  return createHash("sha256").update(encryptionSecret()).digest();
 }
 
 function encrypt(text: string): string {
@@ -43,7 +55,7 @@ function load(): Record<string, ConnectorAuth> {
 function save(data: Record<string, ConnectorAuth>): void {
   const text = JSON.stringify(data, null, 2);
   fs.mkdirSync(dir, {recursive: true});
-  fs.writeFileSync(file, process.env.ENCRYPTION_KEY ? encrypt(text) : text, "utf8");
+  fs.writeFileSync(file, encrypt(text), {encoding: "utf8", mode: 0o600});
 }
 
 export function getConnector(id: string): ConnectorAuth | undefined {
