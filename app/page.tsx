@@ -1,18 +1,206 @@
- "use client";
-import {useEffect,useState} from "react";
-import {LayoutDashboard,ShoppingBag,Users,Package,Wallet,BarChart3,Megaphone,Workflow,Plug,Zap,Search,Bell,Settings,Plus,ArrowUpRight,CheckCircle2,ChevronRight,Bot,Activity,MoreHorizontal,Link2,ShieldCheck,Database,RefreshCw,Mail,Inbox} from "lucide-react";
+"use client";
+
+import {useEffect,useMemo,useState} from "react";
+import {Activity,BadgeIndianRupee,BarChart3,Bot,Box,ChevronRight,Clock3,Database,FileDown,Gauge,LayoutDashboard,Link2,Mail,Megaphone,Package,Plug,RefreshCw,Search,Settings,ShieldCheck,ShoppingBag,Sparkles,Users,Wallet,Webhook,Workflow,X,Zap} from "lucide-react";
 import {automations,connectors} from "@/lib/data";
-const nav=[["OVERVIEW",[["Dashboard",LayoutDashboard]]],["OPERATE",[["Sales",ShoppingBag],["Customers",Users],["Inventory",Package],["Finance",Wallet],["Marketing",Megaphone],["Data",BarChart3]]],["AUTOMATE",[["Automations",Workflow],["AI Agent",Bot],["Activity",Activity]]],["CONNECT",[["Connectors",Plug],["API & Webhooks",Zap]]],["SYSTEM",[["Settings",Settings]]]];
-const stats=[["Revenue","₹48.2L","+18.4%"],["Orders","2,841","+12.8%"],["Customers","18,492","+9.6%"],["Automation revenue","₹7.84L","+31.2%"]];
-export default function App(){const [active,setActive]=useState("Dashboard");const [query,setQuery]=useState("");const [showCreate,setShowCreate]=useState(false);
-useEffect(()=>{const params=new URLSearchParams(window.location.search);if(params.get("connected")==="gmail")setActive("Data")},[]);
-return <div className="app"><aside><div className="logo">◆ <span>Flow</span>OS</div><div className="workspace">ACME COMMERCE <b>⌄</b></div>{nav.map(([group,items]:any)=><div key={group}><div className="label">{group}</div>{items.map(([name,I]:any)=><button className={"nav "+(active===name?"sel":"")} onClick={()=>setActive(name)} key={name} suppressHydrationWarning><I size={17}/>{name}</button>)}</div>)}<div className="bottom"><div className="health"><i/>All systems operational</div><div className="profile"><div className="avatar">AC</div><div><b>Admin</b><small>Owner</small></div><Settings size={16}/></div></div></aside>
-<main><header><div><h1>{active}</h1><p>{active==="Dashboard"?"Your e-commerce command centre.":"Manage "+active.toLowerCase()+" across every connected store."}</p></div><div className="head"><div className="search"><Search size={15}/><input placeholder="Search…" value={query} onChange={e=>setQuery(e.target.value)} suppressHydrationWarning/></div><button className="icon" suppressHydrationWarning><Bell size={17}/><em/></button><button className="primary" onClick={()=>setShowCreate(true)} suppressHydrationWarning><Plus size={16}/> Create automation</button></div></header>
-{active==="Dashboard"?<Dashboard onCreate={()=>setShowCreate(true)}/>:active==="Automations"?<AutomationPage onCreate={()=>setShowCreate(true)}/>:active==="Connectors"?<ConnectorPage/>:active==="Data"?<DataPage/>:<ModulePage name={active}/>}
-{showCreate&&<CreateModal close={()=>setShowCreate(false)}/>}</main></div>}
-function Dashboard({onCreate}:{onCreate:()=>void}){return <><div className="connected"><div><i/>Shopify connected</div><span>Last sync 2 minutes ago · 18,492 customers · 2,841 orders</span><button suppressHydrationWarning>Manage <ChevronRight size={13}/></button></div><div className="stats">{stats.map(s=><div className="card" key={s[0]}><small>{s[0]}</small><strong>{s[1]}</strong><span>{s[2]} <label>vs last 30 days</label></span></div>)}</div><div className="two"><div className="panel chartPanel"><div className="panelHead"><div><h2>Revenue performance</h2><p>Last 30 days</p></div><select suppressHydrationWarning><option>Revenue</option><option>Orders</option></select></div><div className="chart"><div className="axis"><span>₹2L</span><span>₹1.5L</span><span>₹1L</span><span>₹0.5L</span><span>₹0</span></div><svg viewBox="0 0 700 210" preserveAspectRatio="none"><path d="M0 185 C70 175 80 165 130 155 S210 160 250 125 S330 135 370 105 S430 70 470 105 S540 92 580 52 S650 65 700 22" fill="none" stroke="currentColor" strokeWidth="3"/><path d="M0 185 C70 175 80 165 130 155 S210 160 250 125 S330 135 370 105 S430 70 470 105 S540 92 580 52 S650 65 700 22 L700 210 L0 210Z" fill="currentColor" opacity=".07"/></svg></div></div><div className="panel"><div className="panelHead"><div><h2>AI opportunities</h2><p>Prioritized for your store</p></div><Bot size={18}/></div>{["Recover ₹42K from high-LTV churn risk","3 products may stock out this week","Meta campaign CPA is trending up"].map((x,i)=><div className="rec" key={x}><div className="recIcon">{i===0?"↗":i===1?"!":"◈"}</div><div><b>{x}</b><small>{i===0?"Recommended: win-back flow":"Review recommended action"}</small></div><ChevronRight size={14}/></div>)}</div></div><div className="panel"><div className="panelHead"><div><h2>Live automation activity</h2><p>What your workflows are doing</p></div><button className="link" onClick={onCreate} suppressHydrationWarning>New automation <ArrowUpRight size={13}/></button></div><table><thead><tr><th>WORKFLOW</th><th>CATEGORY</th><th>TRIGGER</th><th>RUNS</th><th>RESULT</th><th>STATUS</th></tr></thead><tbody>{automations.map(a=><tr key={a.id}><td><b>{a.name}</b></td><td>{a.category}</td><td>{a.trigger}</td><td>{a.runs.toLocaleString()}</td><td>{a.result}</td><td><span className={"status "+a.status}>{a.status}</span></td></tr>)}</tbody></table></div></>}
-function AutomationPage({onCreate}:{onCreate:()=>void}){return <div><div className="toolbar"><div className="tabs"><button className="active">All</button><button>Active</button><button>Drafts</button></div><button className="primary" onClick={onCreate}><Plus size={15}/> New workflow</button></div><div className="automationGrid">{automations.map(a=><div className="automationCard" key={a.id}><div className="acTop"><span className="cat">{a.category}</span><button><MoreHorizontal size={16}/></button></div><h3>{a.name}</h3><div className="flow"><span>WHEN</span><b>{a.trigger}</b><ChevronRight size={13}/><span>THEN</span><b>Execute actions</b></div><div className="acBottom"><span>{a.runs.toLocaleString()} runs</span><span>{a.result}</span><span className={"status "+a.status}>{a.status}</span></div></div>)}</div></div>}
-function ConnectorPage(){const [items,setItems]=useState(connectors);useEffect(()=>{fetch("/api/connectors").then(r=>r.json()).then((d:any)=>{if(d.data)setItems(d.data)}).catch(()=>{})},[]);const connect=(id:string)=>window.location.href="/api/connectors/"+id+"/connect";const disconnect=(id:string)=>{fetch("/api/connectors/"+id+"/disconnect",{method:"POST"}).then(()=>setItems(x=>x.map(c=>c.id===id?{...c,status:"available",meta:null}:c))).catch(()=>{})};return <div><div className="connectorHero"><div><h2>Connect your commerce stack</h2><p>Bring stores, marketplaces, marketing, payments and fulfillment into one automation layer.</p></div><div className="secure"><ShieldCheck size={18}/> OAuth & encrypted credentials</div></div><div className="connectorGrid">{items.map(c=><div className="connector" key={c.id}><div className="connectorIcon">{c.name.slice(0,1)}</div><div className="conMain"><div><h3>{c.name}</h3><span className={"status "+c.status}>{c.status}</span></div><p>{c.description}</p>{c.meta?<small style={{color:"#5d6571",fontSize:10}}>{c.meta}</small>:null}<div className="connFoot">{c.status==="connected"?<button className="ghost" onClick={()=>disconnect(c.id)}>Disconnect</button>:<button onClick={()=>connect(c.id)}><Link2 size={13}/> Connect</button>}<button className="ghost" onClick={()=>connect(c.id)}><RefreshCw size={13}/> Configure</button></div></div></div>)}</div></div>}
-function DataPage(){const [data,setData]=useState<any>(null);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [refreshing,setRefreshing]=useState(false);async function load(){setRefreshing(true);setError("");try{const r=await fetch("/api/connectors/gmail/data",{cache:"no-store"});const j=await r.json();if(!r.ok)throw new Error(j.error||"Gmail is not connected");setData(j.data)}catch(e){setError(e instanceof Error?e.message:"Unable to load Gmail")}finally{setLoading(false);setRefreshing(false)}}useEffect(()=>{load()},[]);if(loading)return <div className="moduleTop"><div className="moduleIcon"><Mail size={25}/></div><h2>Loading Gmail data</h2><p>Fetching live data from the connected Gmail account…</p></div>;return <div><div className="connectorHero"><div><h2>Live Gmail data</h2><p>Showing real Gmail data from the authenticated account.</p></div><button className="secondary" onClick={load} disabled={refreshing}><RefreshCw size={13}/> {refreshing?"Refreshing…":"Refresh"}</button></div>{error?<div className="panel" style={{marginBottom:12}}><h2 style={{fontSize:14}}>Gmail not connected</h2><p style={{color:"#77818f",fontSize:11,lineHeight:1.5}}>{error}</p><button className="primary" onClick={()=>window.location.href="/api/connectors/gmail/connect"}>Connect Gmail <Link2 size={13}/></button></div>:data?<><div className="stats"><div className="card"><small>Gmail account</small><strong style={{fontSize:16}}>{data.profile?.emailAddress||"Connected"}</strong><span>{Number(data.profile?.messagesTotal||0).toLocaleString()} messages</span></div><div className="card"><small>Threads</small><strong>{Number(data.profile?.threadsTotal||0).toLocaleString()}</strong><span>Live from Gmail</span></div><div className="card"><small>Fetched</small><strong>{data.messages?.length||0}</strong><span>Recent inbox messages</span></div><div className="card"><small>Last sync</small><strong style={{fontSize:15}}>{data.fetchedAt?new Date(data.fetchedAt).toLocaleTimeString():"Just now"}</strong><span>Live API request</span></div></div><div className="panel"><div className="panelHead"><div><h2>Recent Gmail messages</h2><p>Newest messages returned by Gmail API</p></div><Inbox size={18}/></div><table><thead><tr><th>DATE</th><th>FROM</th><th>SUBJECT</th><th>SNIPPET</th></tr></thead><tbody>{(data.messages||[]).map((m:any)=><tr key={m.id}><td>{m.date?new Date(m.date).toLocaleString():"—"}</td><td><b>{m.from||"Unknown"}</b></td><td>{m.subject||"(no subject)"}</td><td>{m.snippet||""}</td></tr>)}</tbody></table></div></>:null}</div>}
-function ModulePage({name}:{name:string}){return <div className="module"><div className="moduleTop"><div className="moduleIcon"><Database size={25}/></div><h2>{name}</h2><p>Centralize, analyze and automate this part of your e-commerce business across every connected channel.</p></div><div className="moduleCards">{["Real-time data","Triggers & conditions","AI decisions","Actions & approvals"].map(x=><div className="card" key={x}><CheckCircle2 size={18}/><h3>{x}</h3><p>Composable production building block for end-to-end workflows.</p></div>)}</div></div>}
-function CreateModal({close}:{close:()=>void}){const [name,setName]=useState("");const [trigger,setTrigger]=useState("Order created");const save=async()=>{await fetch("/api/automations",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({name:name||"Untitled automation",trigger,category:"Sales"})});close()};return <div className="overlay"><div className="modal"><div className="modalHead"><div><h2>Create automation</h2><p>Define the event that starts your workflow.</p></div><button onClick={close}>×</button></div><label>Name<input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Win back high-value customers"/></label><label>Trigger<select value={trigger} onChange={e=>setTrigger(e.target.value)}><option>Order created</option><option>Checkout abandoned</option><option>Customer created</option><option>Inventory below threshold</option><option>Payment failed</option><option>Product published</option></select></label><div className="builder"><div><span>TRIGGER</span><b>{trigger}</b></div><ChevronRight/><div><span>CONDITION</span><b>Choose condition</b></div><ChevronRight/><div><span>ACTION</span><b>Choose action</b></div></div><div className="modalActions"><button className="secondary" onClick={close}>Cancel</button><button className="primary" onClick={save}>Create workflow</button></div></div></div>}
+
+type Source={id:string;name:string;category:string;status:string;description:string;meta?:string|null};
+type LiveBundle={connectorId:string;data:any};
+
+const nav=[
+  ["OVERVIEW",[["Dashboard",LayoutDashboard]]],
+  ["OPERATE",[["Sales",ShoppingBag],["Customers",Users],["Inventory",Package],["Finance",Wallet],["Marketing",Megaphone],["Data",Database]]],
+  ["AUTOMATE",[["Automations",Workflow],["AI Agent",Bot],["Activity",Activity]]],
+  ["CONNECT",[["Connectors",Plug],["API & Webhooks",Webhook]]],
+  ["SYSTEM",[["Settings",Settings]]],
+] as const;
+
+const recipes=[
+  {title:"Recover abandoned carts",trigger:"Checkout abandoned",when:"Customer has an open cart and no order",act:"Send recovery message → wait → retry",impact:"Revenue recovery"},
+  {title:"Win back high-value customers",trigger:"No purchase for 60 days",when:"Customer is high-LTV or recently engaged",act:"Personalized offer → message → measure",impact:"Retention"},
+  {title:"Protect low stock",trigger:"Stock below threshold",when:"Sell-through is high or replenishment is delayed",act:"Alert → reserve → notify team",impact:"Availability"},
+  {title:"Recover failed payments",trigger:"Payment failed",when:"Order is unpaid and recoverable",act:"Retry → remind → escalate",impact:"Cash recovery"},
+  {title:"Launch new collection",trigger:"Collection published",when:"New products are ready to promote",act:"Segment → publish campaign → measure",impact:"Demand"},
+];
+
+export default function App(){
+  const [active,setActive]=useState("Dashboard");
+  const [query,setQuery]=useState("");
+  const [showCreate,setShowCreate]=useState(false);
+  const [sources,setSources]=useState<Source[]>(connectors as Source[]);
+  const [live,setLive]=useState<Record<string,LiveBundle>>({});
+  const [syncing,setSyncing]=useState(false);
+
+  useEffect(()=>{refreshSources()},[]);
+  useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data") refreshLive(active)},[active]);
+
+  async function refreshSources(){
+    try{const r=await fetch("/api/connectors",{cache:"no-store"});const j=await r.json();if(Array.isArray(j.data))setSources(j.data)}catch{}
+  }
+
+  async function refreshLive(view:string){
+    if(view!=="Dashboard"&&view!=="Sales"&&view!=="Data")return;
+    setSyncing(true);
+    try{
+      const connected=sources.filter(s=>s.status==="connected").slice(0,10);
+      const results=await Promise.allSettled(connected.map(async s=>{
+        const r=await fetch(`/api/connector-data?id=${encodeURIComponent(s.id)}`,{cache:"no-store"});
+        const j=await r.json();
+        if(!r.ok||!j.ok)throw new Error(j.error||"live_pull_failed");
+        return j as LiveBundle;
+      }));
+      const next:{[key:string]:LiveBundle}={};
+      results.forEach((r,i)=>{if(r.status==="fulfilled")next[connected[i].id]=r.value});
+      setLive(next);
+    }finally{setSyncing(false)}
+  }
+
+  const filteredSources=useMemo(()=>sources.filter(s=>!query||`${s.name} ${s.category} ${s.description}`.toLowerCase().includes(query.toLowerCase())),[sources,query]);
+  const connectedCount=sources.filter(s=>s.status==="connected").length;
+
+  return <div className="app">
+    <aside>
+      <div className="logo"><span>◆</span> FlowOS</div>
+      <div className="workspace"><div>COMMERCE CONTROL PLANE</div><b>⌄</b></div>
+      {nav.map(([group,items])=><div key={group}>
+        <div className="label">{group}</div>
+        {items.map(([name,I])=><button key={name} className={`nav ${active===name?"sel":""}`} onClick={()=>setActive(name)}><I size={17}/><span>{name}</span>{name==="Data"&&connectedCount>0?<em>{connectedCount}</em>:null}</button>)}
+      </div>)}
+      <div className="bottom">
+        <div className="health"><i/><span>{connectedCount>0?`${connectedCount} live source${connectedCount===1?"":"s"}`:"No live sources yet"}</span></div>
+        <div className="profile"><div className="avatar">FO</div><div><b>Workspace owner</b><small>Operations</small></div><Settings size={16}/></div>
+      </div>
+    </aside>
+
+    <main>
+      <header>
+        <div><h1>{active}</h1><p>{subtitle(active)}</p></div>
+        <div className="head">
+          <div className="search"><Search size={15}/><input placeholder="Search sources, orders, customers…" value={query} onChange={e=>setQuery(e.target.value)}/></div>
+          <button className="icon"><BellDot/><span/></button>
+          <button className="primary" onClick={()=>setShowCreate(true)}><Sparkles size={15}/> Build automation</button>
+        </div>
+      </header>
+
+      {active==="Dashboard"&&<Dashboard live={live} sources={sources} syncing={syncing} refresh={()=>refreshLive("Dashboard")} go={setActive}/>} 
+      {active==="Sales"&&<Sales live={live} sources={sources} syncing={syncing} refresh={()=>refreshLive("Sales")} go={setActive}/>} 
+      {active==="Data"&&<DataCenter live={live} sources={sources} filtered={filteredSources} syncing={syncing} refresh={()=>refreshLive("Data")} go={setActive}/>} 
+      {active==="Automations"&&<AutomationPage open={()=>setShowCreate(true)}/>} 
+      {active==="AI Agent"&&<AgentPage/>}
+      {active==="Activity"&&<ActivityPage/>}
+      {active==="Connectors"&&<ConnectorPage items={filteredSources} refresh={refreshSources}/>} 
+      {active==="API & Webhooks"&&<WebhookPage/>}
+      {active==="Customers"&&<SimpleModule title="Customers" icon={Users} copy="Customer profiles, segments, lifecycle states and retention signals become automation context." cards={["Profiles","Segments","Lifecycle","LTV & retention"]}/>} 
+      {active==="Inventory"&&<SimpleModule title="Inventory" icon={Package} copy="Turn stock, availability and replenishment signals into operational actions." cards={["Stock health","Reorder risk","Availability","Supplier actions"]}/>} 
+      {active==="Finance"&&<SimpleModule title="Finance" icon={Wallet} copy="Unify payments, refunds, reconciliation and cash-recovery workflows." cards={["Payments","Refunds","Reconciliation","Recovery"]}/>} 
+      {active==="Marketing"&&<SimpleModule title="Marketing" icon={Megaphone} copy="Coordinate acquisition, campaigns, audiences and performance across connected channels." cards={["Campaigns","Audiences","Attribution","Optimization"]}/>} 
+      {active==="Settings"&&<SettingsPage/>}
+
+      {showCreate&&<CreateModal close={()=>setShowCreate(false)}/>} 
+    </main>
+  </div>
+}
+
+function subtitle(active:string){const m:Record<string,string>={Dashboard:"See what is happening, what matters next, and what FlowOS can execute.",Sales:"Revenue and order operations across every connected commerce source.",Customers:"Know who bought, who is at risk, and who should be contacted next.",Inventory:"Availability, sell-through and replenishment signals.",Finance:"Money in, money out, recovery and reconciliation.",Marketing:"Campaigns, audiences, acquisition and performance.",Data:"One data plane for every connected source and canonical business object.",Automations:"Reusable trigger → context → decision → action workflows.","AI Agent":"An execution layer that observes signals, reasons with context and acts within policy.",Activity:"A single log of what FlowOS is doing and why.",Connectors:"Connect the systems that create and consume your commerce data.","API & Webhooks":"Inbound events, outbound actions, verification and automation triggers.",Settings:"Workspace defaults, data policy and operating controls."};return m[active]||"FlowOS commerce operations"}
+
+function Dashboard({live,sources,syncing,refresh,go}:{live:Record<string,LiveBundle>;sources:Source[];syncing:boolean;refresh:()=>void;go:(v:string)=>void}){
+  const shop=live.shopify?.data?.data?.shop||live.shopify?.data?.shop;
+  const orders=live.shopify?.data?.data?.orders?.nodes||live.shopify?.data?.orders?.nodes||[];
+  const revenue=orders.reduce((s:number,o:any)=>s+Number(o.totalPriceSet?.shopMoney?.amount||0),0);
+  const aov=orders.length?revenue/orders.length:0;
+  return <>
+    <div className="topbar"><div><div className="eyebrow">OPERATING PICTURE</div><h2>{shop?.name||"Your commerce system"}</h2><p>{shop?.myshopifyDomain||"Connect a commerce source to replace placeholders with live metrics."}</p></div><button className="secondary" onClick={refresh} disabled={syncing}><RefreshCw size={13}/>{syncing?" Syncing":" Sync now"}</button></div>
+    <div className="stats">
+      <Metric label="Revenue sampled" value={revenue?money(revenue,orders[0]?.totalPriceSet?.shopMoney?.currencyCode):"—"} note={orders.length?`${orders.length} recent orders":"Connect Shopify or another source"}/>
+      <Metric label="Orders sampled" value={orders.length?orders.length.toLocaleString():"—"} note="Current live pull"/>
+      <Metric label="Average order value" value={aov?money(aov,orders[0]?.totalPriceSet?.shopMoney?.currencyCode):"—"} note={orders.length?"Derived from pulled orders":"Available after sync"}/>
+      <Metric label="Live sources" value={sources.filter(s=>s.status==="connected").length} note="Connected providers"/>
+    </div>
+    <div className="grid2">
+      <section className="panel heroPanel"><div className="panelHead"><div><h3>What FlowOS should do next</h3><p>Recommendations are workflow templates until the underlying data supports a specific opportunity.</p></div><Bot size={18}/></div>{recipes.slice(0,3).map(r=><Opportunity key={r.title} recipe={r} onClick={()=>go("Automations")}/>)}</section>
+      <section className="panel"><div className="panelHead"><div><h3>Data → decision → action</h3><p>The core automation loop.</p></div><Gauge size={18}/></div><Pipeline/></section>
+    </div>
+    <section className="panel"><div className="panelHead"><div><h3>Connected data fabric</h3><p>Every connected source can feed canonical records, analytics and automation context.</p></div><button className="link" onClick={()=>go("Data")}>Open Data <ChevronRight size={13}/></button></div><div className="sourceStrip">{sources.filter(s=>s.status==="connected").map(s=><SourcePill key={s.id} source={s} live={live[s.id]}/>) }{sources.filter(s=>s.status==="connected").length===0&&<EmptyState title="No live sources yet" copy="Connect your store, payments, marketing and messaging systems. Their data will appear here." onClick={()=>go("Connectors")}/>}</div></section>
+  </>
+}
+
+function Sales({live,sources,syncing,refresh,go}:{live:Record<string,LiveBundle>;sources:Source[];syncing:boolean;refresh:()=>void;go:(v:string)=>void}){
+  const orders=live.shopify?.data?.data?.orders?.nodes||live.shopify?.data?.orders?.nodes||[];
+  const products=live.shopify?.data?.data?.products?.nodes||live.shopify?.data?.products?.nodes||[];
+  const revenue=orders.reduce((s:number,o:any)=>s+Number(o.totalPriceSet?.shopMoney?.amount||0),0);
+  const currency=orders[0]?.totalPriceSet?.shopMoney?.currencyCode;
+  const paid=orders.filter((o:any)=>String(o.displayFinancialStatus||"").toLowerCase().includes("paid")).length;
+  const fulfilled=orders.filter((o:any)=>String(o.displayFulfillmentStatus||"").toLowerCase().includes("fulfilled")).length;
+  return <>
+    <div className="topbar"><div><div className="eyebrow">SALES CONTROL</div><h2>{orders.length?"Live order performance":"Sales comes from connected commerce data"}</h2><p>{orders.length?`${orders.length} recent orders pulled from live sources.`:"No live order dataset is available yet."}</p></div><button className="secondary" onClick={refresh} disabled={syncing}><RefreshCw size={13}/>{syncing?" Syncing":" Refresh"}</button></div>
+    <div className="stats"><Metric label="Revenue sampled" value={revenue?money(revenue,currency):"—"} note="From current order pull"/><Metric label="Orders" value={orders.length||"—"} note="Recent order records"/><Metric label="Paid" value={orders.length?paid:"—"} note="Financial status"/><Metric label="Fulfilled" value={orders.length?fulfilled:"—"} note="Fulfillment status"/></div>
+    <div className="grid2">
+      <section className="panel"><div className="panelHead"><div><h3>Orders</h3><p>Canonical sales view built from the connected commerce source.</p></div><ShoppingBag size={18}/></div>{orders.length?<table><thead><tr><th>ORDER</th><th>STATUS</th><th>FULFILLMENT</th><th>VALUE</th></tr></thead><tbody>{orders.slice(0,20).map((o:any)=><tr key={o.id}><td><b>{o.name||o.id}</b></td><td>{o.displayFinancialStatus||"—"}</td><td>{o.displayFulfillmentStatus||"—"}</td><td>{o.totalPriceSet?.shopMoney?money(o.totalPriceSet.shopMoney.amount,o.totalPriceSet.shopMoney.currencyCode):"—"}</td></tr>)}</tbody></table>:<EmptyState title="Connect commerce data" copy="Sales will automatically become a live view once a commerce connector has orders to pull." onClick={()=>go("Connectors")}/>}</section>
+      <section className="panel"><div className="panelHead"><div><h3>Sales automations</h3><p>Recommended plays linked to revenue outcomes.</p></div><Zap size={18}/></div>{recipes.filter(r=>["Sales","Retention","Demand","Cash recovery"].includes(r.impact)||true).slice(0,4).map(r=><Opportunity key={r.title} recipe={r} onClick={()=>go("Automations")}/>)}</section>
+    </div>
+    <section className="panel"><div className="panelHead"><div><h3>Product signal</h3><p>{products.length?`${products.length} products sampled from the live catalog.`:"Catalog appears once a commerce source is connected."}</p></div><Package size={18}/></div>{products.length?<div className="miniGrid">{products.slice(0,8).map((p:any)=><div className="miniCard" key={p.id}><b>{p.title}</b><span>{p.status||"Catalog item"}</span><small>{p.totalInventory!=null?`${p.totalInventory} units":"Inventory not exposed in this source pull"}</small></div>)}</div>:<EmptyState title="No catalog sample" copy="Product data will feed pricing, merchandising and inventory automations." onClick={()=>go("Data")}/>}</section>
+  </>
+}
+
+function DataCenter({live,sources,filtered,syncing,refresh,go}:{live:Record<string,LiveBundle>;sources:Source[];filtered:Source[];syncing:boolean;refresh:()=>void;go:(v:string)=>void}){
+  const connected=sources.filter(s=>s.status==="connected");
+  return <>
+    <div className="topbar"><div><div className="eyebrow">DATA FABRIC</div><h2>One place for the business truth</h2><p>Pull live source data, normalize it into canonical objects, then expose it to analytics and automations.</p></div><button className="secondary" onClick={refresh} disabled={syncing}><RefreshCw size={13}/>{syncing?" Pulling…":" Pull live data"}</button></div>
+    <section className="panel"><div className="panelHead"><div><h3>Live sources</h3><p>Frontend reads through the existing connector APIs; connector implementation remains isolated.</p></div><span className="status connected">{connected.length} connected</span></div><div className="sourceGrid">{filtered.map(s=><SourceCard key={s.id} source={s} live={live[s.id]}/>)}</div></section>
+    <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Canonical data model</h3><p>Where pulled data should land before automation logic uses it.</p></div><Database size={18}/></div><div className="modelGrid">{["orders","order_items","customers","products","variants","inventory","payments","refunds","shipments","campaigns","ad_spend","messages","events","automation_runs"].map(x=><div className="modelItem" key={x}><span>{x}</span><small>canonical record</small></div>)}</div></section><section className="panel"><div className="panelHead"><div><h3>Storage layers</h3><p>Separation keeps credentials, operational state and analytics responsibilities clear.</p></div><ShieldCheck size={18}/></div><StorageLayers/></section></div>
+    <section className="panel"><div className="panelHead"><div><h3>How data moves</h3><p>Designed so every connector follows the same system pattern.</p></div><ArrowFlow/></div><Pipeline full/></section>
+  </>
+}
+
+function StorageLayers(){return <div className="storage"><div><b>1. Secure credentials</b><span>OAuth / API secrets only</span></div><div><b>2. Raw event log</b><span>Signed events + idempotency keys</span></div><div><b>3. Operational database</b><span>Canonical orders, customers, products, payments</span></div><div><b>4. Analytics projections</b><span>Aggregates, cohorts, KPIs, models</span></div><div><b>5. Automation state</b><span>Runs, outcomes, approvals, retries</span></div></div>}
+
+function Pipeline({full=false}){const steps=full?["Provider API / webhook","Ingest + verify","Normalize","Canonical DB","Analytics + AI","Automation engine","Provider action","Outcome + feedback"]:["Collect","Normalize","Decide","Act","Measure"];return <div className="pipeline">{steps.map((s,i)=><div className="pipeStep" key={s}><span>{String(i+1).padStart(2,"0")}</span><b>{s}</b>{i<steps.length-1&&<ChevronRight size={14}/>}</div>)}</div>}
+function ArrowFlow(){return <div className="flowMark"><span>INPUT</span><ChevronRight size={13}/><span>STATE</span><ChevronRight size={13}/><span>ACTION</span></div>}
+
+function AutomationPage({open}:{open:()=>void}){return <>
+  <div className="topbar"><div><div className="eyebrow">AUTOMATION ENGINE</div><h2>From event to outcome</h2><p>Keep the mental model simple: trigger → context → decision → action → measurement.</p></div><button className="primary" onClick={open}><Workflow size={14}/> New automation</button></div>
+  <section className="recipeGrid">{recipes.map(r=><div className="recipe" key={r.title}><div className="recipeTop"><span className="cat">{r.impact}</span><Sparkles size={16}/></div><h3>{r.title}</h3><div className="recipeLine"><span>WHEN</span><b>{r.trigger}</b></div><div className="recipeLine"><span>CHECK</span><b>{r.when}</b></div><div className="recipeLine"><span>ACT</span><b>{r.act}</b></div><button className="ghostWide" onClick={open}>Use this workflow <ChevronRight size={13}/></button></div>)}</section>
+  <section className="panel"><div className="panelHead"><div><h3>Automation run contract</h3><p>Every run should be observable, retryable and attributable to a source event.</p></div><Activity size={18}/></div><div className="contractGrid"><div><b>Trigger</b><span>Event or schedule</span></div><div><b>Context</b><span>Customer + order + product + campaign state</span></div><div><b>Policy</b><span>Rules, limits, approvals and safety</span></div><div><b>Decision</b><span>Rules or AI recommendation</span></div><div><b>Action</b><span>Provider API call</span></div><div><b>Outcome</b><span>Response, metric and audit record</span></div></div></section>
+</>}
+
+function AgentPage(){return <>
+  <div className="topbar"><div><div className="eyebrow">AI EXECUTION</div><h2>AI Agent, with guardrails</h2><p>Use AI for interpretation and decisions; deterministic policies control what the system is allowed to execute.</p></div><div className="secure"><ShieldCheck size={17}/> Policy controlled</div></div>
+  <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Observe</h3><p>Signals arriving from connected systems.</p></div><Activity size={18}/></div>{["Order event","Customer lifecycle change","Inventory threshold","Campaign performance change"].map((x,i)=><div className="agentRow" key={x}><span>{String(i+1).padStart(2,"0")}</span><b>{x}</b><small>Available to agent context</small></div>)}</section><section className="panel"><div className="panelHead"><div><h3>Decide</h3><p>Reason over canonical context and business policy.</p></div><Bot size={18}/></div>{["Score opportunity","Select next best action","Check policy limits","Request approval when needed"].map((x,i)=><div className="agentRow" key={x}><span>→</span><b>{x}</b><small>{i<3?"Can be automated":"Human-in-the-loop"}</small></div>)}</section></div>
+</>}
+
+function ActivityPage(){return <>
+  <div className="topbar"><div><div className="eyebrow">AUDIT + OPERATIONS</div><h2>Activity</h2><p>Use this surface for run history, retries, failures and outcomes. It should remain event-driven rather than decorative.</p></div><Clock3 size={18}/></div>
+  <section className="panel"><table><thead><tr><th>STAGE</th><th>WHAT TO SHOW</th><th>WHY IT MATTERS</th></tr></thead><tbody>{[["INGEST","source event + event id","proves what triggered the run"],["DECISION","conditions + AI reasoning summary","proves why a path was selected"],["ACTION","provider + operation","shows what was actually executed"],["OUTCOME","provider response + business metric","closes the loop"],["RETRY","attempt + next retry","makes failures recoverable"]].map(r=><tr key={r[0]}><td><b>{r[0]}</b></td><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody></table></section>
+</>}
+
+function ConnectorPage({items,refresh}:{items:Source[];refresh:()=>void}){return <>
+  <div className="topbar"><div><div className="eyebrow">SYSTEM CONNECTIONS</div><h2>Connect once. Reuse everywhere.</h2><p>Connector ownership stays in the connector layer. This screen only launches, reflects status and exposes live-source health.</p></div><button className="secondary" onClick={refresh}><RefreshCw size={13}/> Refresh status</button></div>
+  <div className="connectorGrid">{items.map(c=><div className="connectorCard" key={c.id}><div className="connectorIcon">{c.name.slice(0,1)}</div><div className="connectorBody"><div className="connectorTitle"><h3>{c.name}</h3><span className={`status ${c.status}`}>{c.status}</span></div><p>{c.description}</p>{c.meta?<small>{c.meta}</small>:null}<div className="connectorFoot"><button className="ghost" onClick={()=>window.location.href=`/api/connectors/${c.id}/connect`}>{c.status==="connected"?"Reconfigure":"Connect"} <Link2 size={12}/></button><button className="tiny" onClick={()=>window.location.href="/api/connectors/"+c.id+"/connect"}>Open</button></div></div></div>)}</div>
+</>}
+
+function WebhookPage(){return <>
+  <div className="topbar"><div><div className="eyebrow">EVENT GATEWAY</div><h2>API & Webhooks</h2><p>Inbound events should be verified, deduplicated and turned into automation triggers. Outbound actions should be observable.</p></div><div className="secure"><ShieldCheck size={17}/> Signed events</div></div>
+  <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Inbound event contract</h3><p>Minimal event envelope FlowOS should persist.</p></div><Webhook size={18}/></div><div className="codeBlock">{`event_id\nprovider\ntopic\nreceived_at\nsignature_status\nentity_type\nentity_id\npayload_ref\nprocessing_status`}</div></section><section className="panel"><div className="panelHead"><div><h3>Processing rules</h3><p>Recommended production semantics.</p></div><ShieldCheck size={18}/></div>{["Verify signature","Check idempotency","Persist event","Normalize entity","Enqueue automation","Acknowledge quickly"].map(x=><div className="checkRow" key={x}><ShieldCheck size={14}/><span>{x}</span></div>)}</section></div>
+</>}
+
+function SimpleModule({title,icon:Icon,copy,cards}:{title:string;icon:any;copy:string;cards:string[]}){return <>
+  <section className="moduleHero"><div className="moduleIcon"><Icon size={24}/></div><div><div className="eyebrow">OPERATING MODULE</div><h2>{title}</h2><p>{copy}</p></div></section>
+  <div className="moduleCards">{cards.map(c=><div className="card" key={c}><CheckCircle2Icon/><h3>{c}</h3><p>Canonical records + analytics + automation actions.</p></div>)}</div>
+</>}
+
+function SettingsPage(){return <>
+  <section className="moduleHero"><div className="moduleIcon"><Settings size={24}/></div><div><div className="eyebrow">WORKSPACE</div><h2>Operating controls</h2><p>Keep infrastructure choices out of the day-to-day UI while making policies explicit.</p></div></section>
+  <div className="settingsGrid"><div><b>Data retention</b><span>Raw events and analytics policies</span></div><div><b>Automation safety</b><span>Approval rules, rate limits and allowed actions</span></div><div><b>Audit trail</b><span>Every decision and action attributable</span></div><div><b>Source priority</b><span>Which system is authoritative for each entity</span></div></div>
+</>}
+
+function CreateModal({close}:{close:()=>void}){const [name,setName]=useState("");const [trigger,setTrigger]=useState("Checkout abandoned");const save=async()=>{await fetch("/api/automations",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({name:name||"New automation",trigger,category:"Sales"})});close()};return <div className="overlay"><div className="modal"><div className="modalHead"><div><div className="eyebrow">WORKFLOW BUILDER</div><h2>Create an automation</h2><p>Start with the business event. The runtime then attaches context, policy, action and measurement.</p></div><button className="close" onClick={close}><X size={17}/></button></div><label>Name<input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Recover VIP abandoned carts"/></label><label>Trigger<select value={trigger} onChange={e=>setTrigger(e.target.value)}>{recipes.map(r=><option key={r.trigger}>{r.trigger}</option>)}</select></label><div className="builder"><div><span>1 · TRIGGER</span><b>{trigger}</b></div><ChevronRight/><div><span>2 · CONTEXT</span><b>Load canonical state</b></div><ChevronRight/><div><span>3 · DECISION</span><b>Rules / AI</b></div><ChevronRight/><div><span>4 · ACTION</span><b>Execute + measure</b></div></div><div className="modalActions"><button className="secondary" onClick={close}>Cancel</button><button className="primary" onClick={save}>Create draft</button></div></div></div>}
+
+function Metric({label,value,note}:{label:string;value:any;note:string}){return <div className="card metric"><small>{label}</small><strong>{value}</strong><span>{note}</span></div>}
+function Opportunity({recipe,onClick}:{recipe:any;onClick:()=>void}){return <button className="opportunity" onClick={onClick}><div className="opIcon"><Sparkles size={13}/></div><div><b>{recipe.title}</b><small>{recipe.trigger} · {recipe.impact}</small></div><ChevronRight size={14}/></button>}
+function SourcePill({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourcePill"><div><b>{source.name}</b><span className={`status ${source.status}`}>{source.status}</span></div><small>{count!=null?`${count} records sampled":"Connected and ready"}</small></div>}
+function SourceCard({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourceCard"><div className="sourceTitle"><div className="connectorIcon">{source.name.slice(0,1)}</div><div><b>{source.name}</b><span>{source.category}</span></div><span className={`status ${source.status}`}>{source.status}</span></div><p>{source.description}</p><div className="sourceMeta"><span>{live?"Live pull complete":"Not pulled in this view"}</span><b>{count!=null?count:"—"}</b></div></div>}
+function EmptyState({title,copy,onClick}:{title:string;copy:string;onClick:()=>void}){return <div className="empty"><Database size={18}/><b>{title}</b><span>{copy}</span><button className="secondary" onClick={onClick}>Go there</button></div>}
+function countRecords(id:string,live?:LiveBundle){if(!live)return null;const d=live.data; if(id==="shopify")return (d?.data?.orders?.nodes||d?.orders?.nodes||[]).length+(d?.data?.products?.nodes||d?.products?.nodes||[]).length; if(Array.isArray(d?.products))return d.products.length; if(Array.isArray(d?.orders))return d.orders.length; if(Array.isArray(d?.data))return d.data.length; return 1}
+function money(v:any,currency?:string){const n=Number(v||0);if(!Number.isFinite(n))return "—";try{return new Intl.NumberFormat("en-IN",{style:"currency",currency:currency||"INR",maximumFractionDigits:2}).format(n)}catch{return `₹${n.toLocaleString("en-IN")}`}}
+function BellDot(){return <div className="bellDot" aria-label="Notifications"><span/></div>}
+function CheckCircle2Icon(){return <div className="okMark">✓</div>}
