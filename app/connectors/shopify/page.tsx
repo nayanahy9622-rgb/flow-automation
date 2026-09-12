@@ -66,8 +66,8 @@ export default function ShopifyConnectPage() {
         </div>
 
         <div style={{display:"flex",gap:6,background:"#090d13",border:"1px solid #20252e",padding:4,borderRadius:10,marginTop:26}}>
-          <button onClick={()=>setMode("oauth")} style={tab(mode==="oauth")}>Connect with Shopify</button>
-          <button onClick={()=>setMode("token")} style={tab(mode==="token")}>Paste API token</button>
+          <button suppressHydrationWarning onClick={()=>setMode("oauth")} style={tab(mode==="oauth")}>Connect with Shopify</button>
+          <button suppressHydrationWarning onClick={()=>setMode("token")} style={tab(mode==="token")}>Paste API token</button>
         </div>
 
         {mode === "oauth" ? (
@@ -75,7 +75,7 @@ export default function ShopifyConnectPage() {
             <label style={label}>Shopify store domain</label>
             <div style={{display:"flex",alignItems:"center",border:"1px solid #292f39",background:"#090d13",borderRadius:9,overflow:"hidden"}}>
               <Store size={16} color="#68717e" style={{marginLeft:12}}/>
-              <input value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input}/>
+              <input suppressHydrationWarning value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input}/>
             </div>
             <button type="submit" style={primary}>Continue to Shopify <ExternalLink size={14}/></button>
             <div style={infoBox}><ShieldCheck size={16}/><span>Shopify will open its own login and permission screen. FlowOS never asks for your Shopify password.</span></div>
@@ -83,13 +83,13 @@ export default function ShopifyConnectPage() {
         ) : (
           <form onSubmit={connectToken}>
             <label style={label}>Shopify store domain</label>
-            <input value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input}/>
+            <input suppressHydrationWarning value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input}/>
             <label style={{...label,marginTop:16}}>Admin API access token</label>
             <div style={{display:"flex",alignItems:"center",border:"1px solid #292f39",background:"#090d13",borderRadius:9,overflow:"hidden"}}>
               <KeyRound size={16} color="#68717e" style={{marginLeft:12}}/>
-              <input value={token} onChange={e=>setToken(e.target.value)} placeholder="shpat_..." type="password" style={input}/>
+              <input suppressHydrationWarning value={token} onChange={e=>setToken(e.target.value)} placeholder="shpat_..." type="password" style={input}/>
             </div>
-            <button disabled={loading} type="submit" style={{...primary,opacity:loading ? 0.7 : 1}}>{loading?"Testing connection…":"Test & connect"} <CheckCircle2 size={14}/></button>
+            <button suppressHydrationWarning disabled={loading} type="submit" style={{...primary,opacity:loading ? 0.7 : 1}}>{loading?"Testing connection…":"Test & connect"} <CheckCircle2 size={14}/></button>
             <div style={infoBox}><LockKeyhole size={16}/><span>FlowOS validates the token against Shopify before marking the connector as connected, then stores it encrypted on the server.</span></div>
           </form>
         )}

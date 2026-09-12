@@ -120,10 +120,10 @@ export default function ConnectorPage() {
         {conn.status === "connected" ? (
           <>
             <div style={{marginTop: 24, display: "flex", gap: 10}}>
-              <button onClick={fetchData} disabled={loading} style={{...primary, flex: 1}}>
+              <button suppressHydrationWarning onClick={fetchData} disabled={loading} style={{...primary, flex: 1}}>
                 <Database size={14}/> {loading ? "Fetching…" : "Fetch live data"}
               </button>
-              <button onClick={disconnect} style={{...primary, flex: 1, background: "#1a1516", color: "#ff8b98", border: "1px solid #3a2226"}}>
+              <button suppressHydrationWarning onClick={disconnect} style={{...primary, flex: 1, background: "#1a1516", color: "#ff8b98", border: "1px solid #3a2226"}}>
                 <Unplug size={14}/> Disconnect
               </button>
             </div>
@@ -134,7 +134,7 @@ export default function ConnectorPage() {
         ) : conn.mode === "oauth" ? (
           <>
             <div style={infoBox}><ShieldCheck size={16}/><span>{conn.name} will open its official login and permission screen. FlowOS never sees your {conn.name} password.</span></div>
-            <button onClick={startOAuth} style={primary}><ExternalLink size={14}/> Sign in with {conn.name}</button>
+            <button suppressHydrationWarning onClick={startOAuth} style={primary}><ExternalLink size={14}/> Sign in with {conn.name}</button>
             <p style={{margin: "16px 0 0", fontSize: 11, color: "#58616d", lineHeight: 1.6}}>The app still needs this connector&apos;s OAuth client ID/secret configured on the server (.env) before the redirect will work.</p>
           </>
         ) : conn.mode === "api-key" && conn.fields ? (
@@ -145,6 +145,7 @@ export default function ConnectorPage() {
                 <div style={{display: "flex", alignItems: "center", border: "1px solid #292f39", background: "#090d13", borderRadius: 9, overflow: "hidden", marginTop: 6}}>
                   <KeyRound size={15} color="#68717e" style={{marginLeft: 12}}/>
                   <input
+                    suppressHydrationWarning
                     type={f.secret ? "password" : "text"}
                     value={values[f.env] || ""}
                     onChange={(e) => setValues({...values, [f.env]: e.target.value})}
@@ -154,7 +155,7 @@ export default function ConnectorPage() {
                 </div>
               </label>
             ))}
-            <button disabled={loading} type="submit" style={{...primary, opacity: loading ? 0.7 : 1}}>
+            <button suppressHydrationWarning disabled={loading} type="submit" style={{...primary, opacity: loading ? 0.7 : 1}}>
               <CheckCircle2 size={14}/> {loading ? "Testing credentials…" : "Test & connect"}
             </button>
             <div style={infoBox}><ShieldCheck size={16}/><span>FlowOS validates these credentials live before saving, then stores them encrypted on the server. They are never sent to the browser after save.</span></div>
