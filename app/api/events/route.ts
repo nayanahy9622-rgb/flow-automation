@@ -1,0 +1,2 @@
+import {NextResponse } from "next/server";
+export async function POST(req:Request){const signature=req.headers.get("x-webhook-signature"); const body=await req.json(); return NextResponse.json({accepted:true,eventId:"evt_"+Date.now(),verified:Boolean(signature),received:body})}
