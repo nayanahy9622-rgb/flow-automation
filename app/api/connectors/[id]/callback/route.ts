@@ -30,7 +30,8 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{id: stri
     return NextResponse.redirect(new URL("/?connector_error=" + encodeURIComponent(id), process.env.APP_URL || req.url));
   }
 
-  const redirect = NextResponse.redirect(new URL("/?connected=" + id, process.env.APP_URL || req.url));
+  const target = id === "gmail" ? "/?connected=gmail" : "/?connected=" + encodeURIComponent(id);
+  const redirect = NextResponse.redirect(new URL(target, process.env.APP_URL || req.url));
   redirect.cookies.set("flowos_oauth_state", "", {
     httpOnly: true,
     sameSite: "lax",
