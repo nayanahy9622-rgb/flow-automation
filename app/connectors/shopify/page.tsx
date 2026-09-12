@@ -75,7 +75,7 @@ export default function ShopifyConnectPage() {
             <label style={label}>Shopify store domain</label>
             <div style={{display:"flex",alignItems:"center",border:"1px solid #292f39",background:"#090d13",borderRadius:9,overflow:"hidden"}}>
               <Store size={16} color="#68717e" style={{marginLeft:12}}/>
-              <input value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input(true)}/>
+              <input value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input}/>
             </div>
             <button type="submit" style={primary}>Continue to Shopify <ExternalLink size={14}/></button>
             <div style={infoBox}><ShieldCheck size={16}/><span>Shopify will open its own login and permission screen. FlowOS never asks for your Shopify password.</span></div>
@@ -83,13 +83,13 @@ export default function ShopifyConnectPage() {
         ) : (
           <form onSubmit={connectToken}>
             <label style={label}>Shopify store domain</label>
-            <input value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input(false)}/>
+            <input value={shop} onChange={e=>setShop(e.target.value)} placeholder="your-store.myshopify.com" style={input}/>
             <label style={{...label,marginTop:16}}>Admin API access token</label>
             <div style={{display:"flex",alignItems:"center",border:"1px solid #292f39",background:"#090d13",borderRadius:9,overflow:"hidden"}}>
               <KeyRound size={16} color="#68717e" style={{marginLeft:12}}/>
-              <input value={token} onChange={e=>setToken(e.target.value)} placeholder="shpat_..." type="password" style={input(true)}/>
+              <input value={token} onChange={e=>setToken(e.target.value)} placeholder="shpat_..." type="password" style={input}/>
             </div>
-            <button disabled={loading} type="submit" style={{...primary,opacity:loading?.7:1}}>{loading?"Testing connection…":"Test & connect"} <CheckCircle2 size={14}/></button>
+            <button disabled={loading} type="submit" style={{...primary,opacity:loading ? 0.7 : 1}}>{loading?"Testing connection…":"Test & connect"} <CheckCircle2 size={14}/></button>
             <div style={infoBox}><LockKeyhole size={16}/><span>FlowOS validates the token against Shopify before marking the connector as connected, then stores it encrypted on the server.</span></div>
           </form>
         )}
@@ -102,7 +102,7 @@ export default function ShopifyConnectPage() {
 }
 
 const label: React.CSSProperties = {display:"block",fontSize:11,color:"#8f98a5",marginTop:24,marginBottom:7};
-const input = (inside:boolean): React.CSSProperties => ({width:"100%",boxSizing:"border-box",border:0,outline:0,background:"transparent",color:"#fff",padding:inside?"11px 12px":"11px 12px",fontSize:12});
+const input: React.CSSProperties = {width:"100%",boxSizing:"border-box",border:0,outline:0,background:"transparent",color:"#fff",padding:"11px 12px",fontSize:12};
 const primary: React.CSSProperties = {marginTop:18,width:"100%",border:0,borderRadius:9,background:"#f1f3f7",color:"#090b0e",padding:"11px 14px",fontWeight:750,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:7,cursor:"pointer"};
 const infoBox: React.CSSProperties = {marginTop:16,display:"flex",gap:9,alignItems:"flex-start",padding:12,border:"1px solid #20262f",background:"#0a0e14",borderRadius:9,color:"#737d8a",fontSize:11,lineHeight:1.5};
 const tab = (active:boolean): React.CSSProperties => ({flex:1,border:0,borderRadius:7,padding:"9px 10px",background:active?"#1a1f28":"transparent",color:active?"#fff":"#747e8b",fontSize:11,cursor:"pointer"});
