@@ -9,7 +9,7 @@ function equal(a: string, b: string): boolean {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-function validShop(value: string | null): string | null {
+function validShop(value: string | null | undefined): string | null {
   if (!value) return null;
   const clean = value.trim().toLowerCase().replace(/\.myshopify\.com$/, "");
   return /^[a-z0-9][a-z0-9-]*$/.test(clean) ? clean : null;

@@ -27,7 +27,7 @@ export async function shopifyGraphql(shop: string, token: string, query: string,
 }
 
 export async function validateShopifyToken(shop: string, token: string) {
-  return shopifyGraphql(shop, token, "query { shop { id name email myshopifyDomain } }`);
+  return shopifyGraphql(shop, token, "query { shop { id name email myshopifyDomain } }");
 }
 
 export async function exchangeShopifyCode(shop: string, code: string, redirectUri: string) {
