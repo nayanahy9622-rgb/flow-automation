@@ -23,6 +23,12 @@ export async function GET(req: Request, {params}: {params: Promise<{id: string}>
   const p = getProvider(id);
   if (!p) return NextResponse.json({error: "unknown connector"}, {status: 404});
 
+  // Shopify has a merchant-facing connection screen. The merchant supplies the store
+  // hostname there; FlowOS never asks the merchant for the app's client ID/secret.
+  if (id === "shopify") {
+    return NextResponse.redirect(new URL("/connectors/shopify", process.env.APP_URL || req.url));
+  }
+
   const missing = missingCredentials(p);
   if (missing.length) {
     const vars = Array.from({length: missing.length}, (_, i) => envVarFor(id, i));
