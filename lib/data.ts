@@ -8,6 +8,7 @@ export const automations:Automation[]=[
 ];
 export const connectors:Connector[]=[
 {id:"shopify",name:"Shopify",category:"Commerce",status:"connected",description:"Orders, customers, products, inventory and webhooks"},
+{id:"github",name:"GitHub",category:"Developer",status:"available",description:"Repositories, files, issues and pull requests"},
 {id:"woocommerce",name:"WooCommerce",category:"Commerce",status:"available",description:"Store, orders, customers and product data"},
 {id:"amazon",name:"Amazon",category:"Marketplace",status:"available",description:"Marketplace orders and catalog data"},
 {id:"flipkart",name:"Flipkart",category:"Marketplace",status:"available",description:"Marketplace order and listing integration"},
