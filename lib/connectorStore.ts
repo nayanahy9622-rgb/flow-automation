@@ -1,5 +1,6 @@
 import {createCipheriv, createDecipheriv, createHash, randomBytes} from "crypto";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 
 export type ConnectorAuth = {
@@ -13,8 +14,24 @@ export type ConnectorAuth = {
   providerData?: Record<string, string>;
 };
 
-const dir = path.join(process.cwd(), ".flowos");
-const file = path.join(dir, "connectors.json");
+let storeDir: string | null = null;
+function resolveStoreDir(): string {
+  if (storeDir) return storeDir;
+  const candidates = [path.join(process.cwd(), ".flowos"), path.join(os.tmpdir(), "flowos-store")];
+  for (const dir of candidates) {
+    try {
+      fs.mkdirSync(dir, {recursive: true});
+      const probe = path.join(dir, ".probe");
+      fs.writeFileSync(probe, "x");
+      fs.unlinkSync(probe);
+      storeDir = dir;
+      return dir;
+    } catch {}
+  }
+  storeDir = path.join(os.tmpdir(), "flowos-store");
+  return storeDir;
+}
+const storeFile = () => path.join(resolveStoreDir(), "connectors.json");
 
 function encryptionSecret(): string {
   const configured = process.env.ENCRYPTION_KEY;
@@ -40,16 +57,16 @@ function decrypt(text: string): string {
 }
 
 function load(): Record<string, ConnectorAuth> {
-  if (!fs.existsSync(file)) return {};
+  if (!fs.existsSync(storeFile())) return {};
   try {
-    const raw = fs.readFileSync(file, "utf8");
+    const raw = fs.readFileSync(storeFile(), "utf8");
     return JSON.parse(raw.startsWith("{") && raw.includes('"iv"') ? decrypt(raw) : raw);
   } catch { return {}; }
 }
 
 function save(data: Record<string, ConnectorAuth>): void {
-  fs.mkdirSync(dir, {recursive: true});
-  fs.writeFileSync(file, encrypt(JSON.stringify(data, null, 2)), {encoding: "utf8", mode: 0o600});
+  fs.mkdirSync(resolveStoreDir(), {recursive: true});
+  fs.writeFileSync(storeFile(), encrypt(JSON.stringify(data, null, 2)), {encoding: "utf8", mode: 0o600});
 }
 
 export function getConnector(id: string): ConnectorAuth | undefined { return load()[`connector:${id}`]; }

@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const shop = validShop(new URL(req.url).searchParams.get("shop"));
   const clientId = process.env.SHOPIFY_CLIENT_ID;
   if (!shop) return new NextResponse("Invalid Shopify store domain", {status: 400});
-  if (!clientId) return new NextResponse("FlowOS Shopify OAuth is not configured. Add SHOPIFY_CLIENT_ID on the server.", {status: 503});
+  if (!clientId) return new NextResponse("Tentran AI Shopify OAuth is not configured. Add SHOPIFY_CLIENT_ID on the server.", {status: 503});
 
   const state = randomBytes(32).toString("base64url");
   const callback = connectorCallback("shopify");

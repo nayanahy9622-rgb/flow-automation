@@ -60,7 +60,7 @@ export default function App(){
 
   return <div className="app">
     <aside>
-      <div className="logo"><span>◆</span> FlowOS</div>
+      <div className="logo"><span>◆</span> Tentran AI</div>
       <div className="workspace"><div>COMMERCE CONTROL PLANE</div><b>➞</b></div>
       {nav.map(([group,items])=><div key={group}>
         <div className="label">{group}</div>
@@ -101,7 +101,7 @@ export default function App(){
   </div>
 }
 
-function subtitle(active:string){const m:Record<string,string>={Dashboard:"See what is happening, what matters next, and what FlowOS can execute.",Sales:"Revenue and order operations across every connected commerce source.",Customers:"Know who bought, who is at risk, and who should be contacted next.",Inventory:"Availability, sell-through and replenishment signals.",Finance:"Money in, money out, recovery and reconciliation.",Marketing:"Campaigns, audiences, acquisition and performance.",Data:"One data plane for every connected source and canonical business object.",Automations:"Reusable trigger → context → decision → action workflows.","AI Agent":"An execution layer that observes signals, reasons with context and acts within policy.",Activity:"A single log of what FlowOS is doing and why.",Connectors:"Connect the systems that create and consume your commerce data.","API & Webhooks":"Inbound events, outbound actions, verification and automation triggers.",Settings:"Workspace defaults, data policy and operating controls."};return m[active]||"FlowOS commerce operations"}
+function subtitle(active:string){const m:Record<string,string>={Dashboard:"See what is happening, what matters next, and what Tentran AI can execute.",Sales:"Revenue and order operations across every connected commerce source.",Customers:"Know who bought, who is at risk, and who should be contacted next.",Inventory:"Availability, sell-through and replenishment signals.",Finance:"Money in, money out, recovery and reconciliation.",Marketing:"Campaigns, audiences, acquisition and performance.",Data:"One data plane for every connected source and canonical business object.",Automations:"Reusable trigger → context → decision → action workflows.","AI Agent":"An execution layer that observes signals, reasons with context and acts within policy.",Activity:"A single log of what Tentran AI is doing and why.",Connectors:"Connect the systems that create and consume your commerce data.","API & Webhooks":"Inbound events, outbound actions, verification and automation triggers.",Settings:"Workspace defaults, data policy and operating controls."};return m[active]||"Tentran AI commerce operations"}
 
 function Dashboard({live,sources,syncing,refresh,go}:{live:Record<string,LiveBundle>;sources:Source[];syncing:boolean;refresh:()=>void;go:(v:string)=>void}){
   const shop=live.shopify?.data?.data?.shop||live.shopify?.data?.shop;
@@ -117,7 +117,7 @@ function Dashboard({live,sources,syncing,refresh,go}:{live:Record<string,LiveBun
       <Metric label="Live sources" value={sources.filter(s=>s.status==="connected").length} note="Connected providers"/>
     </div>
     <div className="grid2">
-      <section className="panel heroPanel"><div className="panelHead"><div><h3>What FlowOS should do next</h3><p>Recommendations are workflow templates until the underlying data supports a specific opportunity.</p></div><Bot size={18}/></div>{recipes.slice(0,3).map(r=><Opportunity key={r.title} recipe={r} onClick={()=>go("Automations")}/>)}</section>
+      <section className="panel heroPanel"><div className="panelHead"><div><h3>What Tentran AI should do next</h3><p>Recommendations are workflow templates until the underlying data supports a specific opportunity.</p></div><Bot size={18}/></div>{recipes.slice(0,3).map(r=><Opportunity key={r.title} recipe={r} onClick={()=>go("Automations")}/>)}</section>
       <section className="panel"><div className="panelHead"><div><h3>Data → decision → action</h3><p>The core automation loop.</p></div><Gauge size={18}/></div><Pipeline/></section>
     </div>
     <section className="panel"><div className="panelHead"><div><h3>Connected data fabric</h3><p>Every connected source can feed canonical records, analytics and automation context.</p></div><button className="link" suppressHydrationWarning onClick={()=>go("Data")}>Open Data <ChevronRight size={13}/></button></div><div className="sourceStrip">{sources.filter(s=>s.status==="connected").map(s=><SourcePill key={s.id} source={s} live={live[s.id]}/>) }{sources.filter(s=>s.status==="connected").length===0&&<EmptyState title="No live sources yet" copy="Connect your store, payments, marketing and messaging systems. Their data will appear here." onClick={()=>go("Connectors")}/>}</div></section>
@@ -180,7 +180,7 @@ function ConnectorPage({items,refresh}:{items:Source[];refresh:()=>void}){return
 
 function WebhookPage(){return <>
   <div className="topbar"><div><div className="eyebrow">EVENT GATEWAY</div><h2>API & Webhooks</h2><p>Inbound events should be verified, deduplicated and turned into automation triggers. Outbound actions should be observable.</p></div><div className="secure"><ShieldCheck size={17}/> Signed events</div></div>
-  <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Inbound event contract</h3><p>Minimal event envelope FlowOS should persist.</p></div><Webhook size={18}/></div><div className="codeBlock">{`event_id\nprovider\ntopic\nreceived_at\nsignature_status\nentity_type\nentity_id\npayload_ref\nprocessing_status`}</div></section><section className="panel"><div className="panelHead"><div><h3>Processing rules</h3><p>Recommended production semantics.</p></div><ShieldCheck size={18}/></div>{["Verify signature","Check idempotency","Persist event","Normalize entity","Enqueue automation","Acknowledge quickly"].map(x=><div className="checkRow" key={x}><ShieldCheck size={14}/><span>{x}</span></div>)}</section></div>
+  <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Inbound event contract</h3><p>Minimal event envelope Tentran AI should persist.</p></div><Webhook size={18}/></div><div className="codeBlock">{`event_id\nprovider\ntopic\nreceived_at\nsignature_status\nentity_type\nentity_id\npayload_ref\nprocessing_status`}</div></section><section className="panel"><div className="panelHead"><div><h3>Processing rules</h3><p>Recommended production semantics.</p></div><ShieldCheck size={18}/></div>{["Verify signature","Check idempotency","Persist event","Normalize entity","Enqueue automation","Acknowledge quickly"].map(x=><div className="checkRow" key={x}><ShieldCheck size={14}/><span>{x}</span></div>)}</section></div>
 </>}
 
 function SimpleModule({title,icon:Icon,copy,cards}:{title:string;icon:any;copy:string;cards:string[]}){return <>
