@@ -4,9 +4,9 @@ import {Automation,Connector} from "./types";
 export const automations:Automation[]=[];
 
 // Ecommerce connector catalog. A provider is never shown as connected until its real
-// authentication flow has completed. Shopify is the first connector planned for activation.
+authentication flow has completed. Shopify is the first live connector.
 export const connectors:Connector[]=[
-{id:"shopify",name:"Shopify",category:"Commerce",status:"coming-soon",description:"Orders, customers, products, inventory and webhooks"},
+{id:"shopify",name:"Shopify",category:"Commerce",status:"available",description:"Orders, customers, products, inventory and webhooks"},
 {id:"woocommerce",name:"WooCommerce",category:"Commerce",status:"coming-soon",description:"Store, orders, customers and product data"},
 {id:"amazon",name:"Amazon",category:"Marketplace",status:"coming-soon",description:"Marketplace orders and catalog data"},
 {id:"flipkart",name:"Flipkart",category:"Marketplace",status:"coming-soon",description:"Marketplace order and listing integration"},
