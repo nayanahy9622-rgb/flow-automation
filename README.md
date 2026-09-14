@@ -1,6 +1,6 @@
-# FlowOS — E-commerce Automation SaaS
+# TenTran AI — E-commerce Automation SaaS
 
-FlowOS is a Next.js e-commerce automation workspace with real server-side connector authentication and provider data retrieval.
+TenTran AI is a Next.js e-commerce automation workspace with real server-side connector authentication and provider data retrieval.
 
 ## Real connector model
 
