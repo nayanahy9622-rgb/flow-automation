@@ -1,7 +1,15 @@
 "use client";
+import {useEffect} from "react";
 import {ArrowLeft,ExternalLink,ShieldCheck} from "lucide-react";
 
 export default function ShopifyConnectPage(){
+ useEffect(()=>{
+  const params=new URLSearchParams(window.location.search);
+  if(params.get("shop")&&params.get("hmac")&&params.get("timestamp")){
+   window.location.replace(`/api/connectors/shopify/install?${params.toString()}`);
+  }
+ },[]);
+
  return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:24,background:"#07090d",color:"#eef1f6",fontFamily:"Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"}}>
   <div style={{width:"min(680px,100%)",border:"1px solid #20252e",background:"#0c1016",borderRadius:16,padding:28,boxShadow:"0 30px 100px #0008"}}>
    <a href="/" style={{display:"inline-flex",alignItems:"center",gap:7,color:"#8e97a5",textDecoration:"none",fontSize:12,marginBottom:22}}><ArrowLeft size={15}/> Back to TenTran AI</a>
