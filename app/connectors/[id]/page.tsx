@@ -102,7 +102,7 @@ export default function ConnectorPage() {
   return (
     <main style={page}>
       <div style={card}>
-        <a href="/" style={back}><ArrowLeft size={15}/> Back to Tentran AI</a>
+        <a href="/" style={back}><ArrowLeft size={15}/> Back to TenTran AI</a>
         <div style={{display: "flex", alignItems: "center", gap: 12}}>
           <div style={logo}>{conn.name.slice(0, 1)}</div>
           <div>
@@ -133,7 +133,7 @@ export default function ConnectorPage() {
           </>
         ) : conn.mode === "oauth" ? (
           <>
-            <div style={infoBox}><ShieldCheck size={16}/><span>{conn.name} will open its official login and permission screen. Tentran AI never sees your {conn.name} password.</span></div>
+            <div style={infoBox}><ShieldCheck size={16}/><span>{conn.name} will open its official login and permission screen. TenTran AI never sees your {conn.name} password.</span></div>
             <button suppressHydrationWarning onClick={startOAuth} style={primary}><ExternalLink size={14}/> Sign in with {conn.name}</button>
             <p style={{margin: "16px 0 0", fontSize: 11, color: "#58616d", lineHeight: 1.6}}>The app still needs this connector&apos;s OAuth client ID/secret configured on the server (.env) before the redirect will work.</p>
           </>
@@ -158,7 +158,7 @@ export default function ConnectorPage() {
             <button suppressHydrationWarning disabled={loading} type="submit" style={{...primary, opacity: loading ? 0.7 : 1}}>
               <CheckCircle2 size={14}/> {loading ? "Testing credentials…" : "Test & connect"}
             </button>
-            <div style={infoBox}><ShieldCheck size={16}/><span>Tentran AI validates these credentials live before saving, then stores them encrypted on the server. They are never sent to the browser after save.</span></div>
+            <div style={infoBox}><ShieldCheck size={16}/><span>TenTran AI validates these credentials live before saving, then stores them encrypted on the server. They are never sent to the browser after save.</span></div>
           </form>
         ) : (
           <div style={infoBox}><Database size={16}/><span>{conn.manualNote || "This connector requires provider-side onboarding or an approved partner/seller account before it can be connected automatically."}</span></div>
