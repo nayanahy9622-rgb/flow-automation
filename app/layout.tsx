@@ -1,3 +1,11 @@
-import "./globals.css"; import type {Metadata} from "next";
-export const metadata:Metadata={title:"TenTran AI - Commerce Operating System",description:"AI operating system for commerce operations and automation"};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}<script dangerouslySetInnerHTML={{__html:`(()=>{const r=()=>{const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(n.nodeValue){n.nodeValue=n.nodeValue.replaceAll("FlowOS","TenTran AI").replaceAll("Tentran AI","TenTran AI");}}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",r);else r();new MutationObserver(r).observe(document.body,{subtree:true,childList:true,characterData:true});})();`}} /></body></html>}
+import "./globals.css";
+import type {Metadata} from "next";
+
+export const metadata:Metadata={
+  title:"TenTran AI - Commerce Operating System",
+  description:"AI operating system for commerce operations and automation"
+};
+
+export default function RootLayout({children}:{children:React.ReactNode}){
+  return <html lang="en"><body>{children}</body></html>;
+}
