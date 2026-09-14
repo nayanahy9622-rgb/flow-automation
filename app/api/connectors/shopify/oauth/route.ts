@@ -15,7 +15,7 @@ export async function GET(req:Request){
  if(!clientId)return new NextResponse("Shopify OAuth is not configured. Add SHOPIFY_CLIENT_ID on the server.",{status:503});
  const state=randomBytes(32).toString("base64url");
  const callback=connectorCallback("shopify");
- const scopes="read_products,read_orders,read_customers,read_inventory";
+ const scopes="read_products,read_orders,read_customers,read_inventory,write_products";
  const authorize=new URL(`https://${shop}.myshopify.com/admin/oauth/authorize`);
  authorize.searchParams.set("client_id",clientId);
  authorize.searchParams.set("scope",scopes);
