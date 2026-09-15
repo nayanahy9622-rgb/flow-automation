@@ -63,6 +63,18 @@ function magentoData(auth: ConnectorAuth) {
   ]).then(([products, orders]) => ({products, orders}));
 }
 
+async function meeshoData(auth: ConnectorAuth) {
+  const [key, secret] = auth.accessToken.split("|");
+  if (!key || !secret) throw new Error("Meesho credentials incomplete");
+  const basic = Buffer.from(`${key}:${secret}`).toString("base64");
+  const h = {authorization: `Basic ${basic}`, accept: "application/json"};
+  const [orders, products] = await Promise.all([
+    jsonFetch("https://api.meesho.com/v1/orders?limit=5", {headers: h}),
+    jsonFetch("https://api.meesho.com/v1/products?limit=5", {headers: h}),
+  ]);
+  return {orders, products};
+}
+
 async function flipkartData(auth: ConnectorAuth) {
   const [key, secret] = auth.accessToken.split("|");
   if (!key || !secret) throw new Error("Flipkart credentials incomplete");
@@ -102,6 +114,7 @@ shiprocket:{id:"shiprocket",name:"Shiprocket",mode:"api-key",apiKeys:[process.en
 delhivery:{id:"delhivery",name:"Delhivery",mode:"api-key",apiKeys:[process.env.DELHIVERY_API_TOKEN],tokenFields:[{env:"DELHIVERY_API_TOKEN",label:"Delhivery API Token",placeholder:"(api token)",secret:true}],data:delhiveryData,validate:async(auth)=>{await delhiveryData(auth)}},
 magento:{id:"magento",name:"Magento",mode:"api-key",apiKeys:[process.env.MAGENTO_STORE_URL,process.env.MAGENTO_ADMIN_TOKEN],tokenFields:[{env:"MAGENTO_STORE_URL",label:"Magento store URL",placeholder:"https://store.example.com"},{env:"MAGENTO_ADMIN_TOKEN",label:"Admin API bearer token",placeholder:"(admin token)",secret:true}],data:magentoData,validate:async(auth)=>{await magentoData(auth)}},
 flipkart:{id:"flipkart",name:"Flipkart",mode:"api-key",apiKeys:[process.env.FLIPKART_API_KEY,process.env.FLIPKART_API_SECRET],tokenFields:[{env:"FLIPKART_API_KEY",label:"Flipkart API key",placeholder:"(api key)"},{env:"FLIPKART_API_SECRET",label:"Flipkart API secret",placeholder:"(api secret)",secret:true}],data:flipkartData,validate:async(auth)=>{await flipkartData(auth)}},
+meesho:{id:"meesho",name:"Meesho",mode:"api-key",apiKeys:[process.env.MEESHO_API_KEY,process.env.MEESHO_API_SECRET],tokenFields:[{env:"MEESHO_API_KEY",label:"Meesho API key",placeholder:"(api key)"},{env:"MEESHO_API_SECRET",label:"Meesho API secret",placeholder:"(api secret)",secret:true}],data:meeshoData,validate:async(auth)=>{await meeshoData(auth)}},
 myntra:{id:"myntra",name:"Myntra",mode:"manual",manualNote:"Myntra partner APIs require approved seller integration and credentials issued by Myntra Partner Services."}
 };
 
@@ -110,5 +123,5 @@ export function providerState():string{return randomBytes(32).toString("hex");}
 export async function completeOAuth(id:string,code:string):Promise<void>{const p=getProvider(id);if(!p||p.mode!=="oauth"||!p.exchange||!p.clientId||!p.clientSecret)throw new Error("unsupported connector or missing credentials");const auth=await p.exchange(p.clientId,p.clientSecret,code,connectorCallback(id));if(p.summary){try{auth.meta=await p.summary(auth);}catch{auth.meta=null;}}setConnector(id,auth);}
 export function saveApiKeyConnector(id:string,keys:string[]):void{setConnector(id,{accessToken:keys.join("|"),connectedAt:Date.now(),meta:"API credentials configured"});}
 export function missingCredentials(p:Provider):string[]{if(p.mode==="oauth"){const missing:string[]=[];if(!p.clientId)missing.push(`${p.name} client ID`);if(!p.clientSecret)missing.push(`${p.name} client secret`);if(p.id==="shopify"&&!process.env.SHOPIFY_SHOP)missing.push("SHOPIFY_SHOP store domain");return missing;}if(p.mode==="api-key")return(p.apiKeys||[]).map((v,i)=>v?"":envVarFor(p.id,i)).filter(Boolean);return[];}
-export function envVarFor(id:string,index:number):string{const map:Record<string,string[]>={shopify:["SHOPIFY_CLIENT_ID","SHOPIFY_CLIENT_SECRET","SHOPIFY_SHOP"],"google-sheets":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],gmail:["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],"google-ads":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],meta:["META_CLIENT_ID","META_CLIENT_SECRET"],tiktok:["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"],klaviyo:["KLAVIYO_CLIENT_ID","KLAVIYO_CLIENT_SECRET"],stripe:["STRIPE_CLIENT_ID","STRIPE_SECRET_KEY"],bigcommerce:["BIGCOMMERCE_CLIENT_ID","BIGCOMMERCE_CLIENT_SECRET"],wix:["WIX_CLIENT_ID","WIX_CLIENT_SECRET"],amazon:["AMAZON_CLIENT_ID","AMAZON_CLIENT_SECRET"],razorpay:["RAZORPAY_KEY_ID","RAZORPAY_KEY_SECRET"],woocommerce:["WOO_STORE_URL","WOO_CONSUMER_KEY","WOO_CONSUMER_SECRET"],whatsapp:["WHATSAPP_ACCESS_TOKEN","WHATSAPP_PHONE_NUMBER_ID"],shiprocket:["SHIPROCKET_API_TOKEN"],delhivery:["DELHIVERY_API_TOKEN"],magento:["MAGENTO_STORE_URL","MAGENTO_ADMIN_TOKEN"],flipkart:["FLIPKART_API_KEY","FLIPKART_API_SECRET"]};return map[id]?.[index]||"";}
+export function envVarFor(id:string,index:number):string{const map:Record<string,string[]>={shopify:["SHOPIFY_CLIENT_ID","SHOPIFY_CLIENT_SECRET","SHOPIFY_SHOP"],"google-sheets":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],gmail:["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],"google-ads":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],meta:["META_CLIENT_ID","META_CLIENT_SECRET"],tiktok:["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"],klaviyo:["KLAVIYO_CLIENT_ID","KLAVIYO_CLIENT_SECRET"],stripe:["STRIPE_CLIENT_ID","STRIPE_SECRET_KEY"],bigcommerce:["BIGCOMMERCE_CLIENT_ID","BIGCOMMERCE_CLIENT_SECRET"],wix:["WIX_CLIENT_ID","WIX_CLIENT_SECRET"],amazon:["AMAZON_CLIENT_ID","AMAZON_CLIENT_SECRET"],razorpay:["RAZORPAY_KEY_ID","RAZORPAY_KEY_SECRET"],woocommerce:["WOO_STORE_URL","WOO_CONSUMER_KEY","WOO_CONSUMER_SECRET"],whatsapp:["WHATSAPP_ACCESS_TOKEN","WHATSAPP_PHONE_NUMBER_ID"],shiprocket:["SHIPROCKET_API_TOKEN"],delhivery:["DELHIVERY_API_TOKEN"],magento:["MAGENTO_STORE_URL","MAGENTO_ADMIN_TOKEN"],flipkart:["FLIPKART_API_KEY","FLIPKART_API_SECRET"],meesho:["MEESHO_API_KEY","MEESHO_API_SECRET"]};return map[id]?.[index]||"";}
 export async function pullConnectorData(id:string):Promise<unknown>{const p=getProvider(id);const auth=getConnector(id);if(!p)throw new Error("unknown connector");if(!auth)throw new Error("connector not connected");if(p.data)return p.data(auth);throw new Error("provider data adapter unavailable");}
