@@ -8,8 +8,11 @@ export async function GET(req:Request){
   const stored=(await cookies()).get("tentran_google_state")?.value;
   if(!code||!state||!stored||state!==stored)return NextResponse.redirect(new URL("/auth?error=google_state",url));
   try{
+    const clientId=process.env.GOOGLE_CLIENT_ID;
+    const clientSecret=process.env.GOOGLE_CLIENT_SECRET;
+    if(!clientId||!clientSecret)throw new Error("Google sign-in is unavailable because the OAuth credentials are not available to the running server");
     const redirect=`${process.env.APP_URL||url.origin}/api/auth/google/callback`;
-    const tokenRes=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:process.env.GOOGLE_CLIENT_ID!,client_secret:process.env.GOOGLE_CLIENT_SECRET!,code,redirect_uri:redirect,grant_type:"authorization_code"})});
+    const tokenRes=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,code,redirect_uri:redirect,grant_type:"authorization_code"})});
     const token=await tokenRes.json();if(!tokenRes.ok||!token.access_token)throw new Error("Google token exchange failed");
     const profileRes=await fetch("https://openidconnect.googleapis.com/v1/userinfo",{headers:{authorization:`Bearer ${token.access_token}`}});const profile=await profileRes.json();
     if(!profileRes.ok||!profile.email||profile.email_verified!==true)throw new Error("Google did not return a verified email");

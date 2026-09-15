@@ -1,11 +1,13 @@
 import {NextResponse} from "next/server";
 import {cookies} from "next/headers";
 import {randomBytes} from "crypto";
+import {getProvider} from "@/lib/oauth";
 
 export async function GET(){
-  const clientId=process.env.GOOGLE_CLIENT_ID;
-  const clientSecret=process.env.GOOGLE_CLIENT_SECRET;
-  if(!clientId||!clientSecret)return NextResponse.json({ok:false,error:"Google sign-in is not configured."},{status:503});
+  const provider=getProvider("google-sheets");
+  const clientId=provider?.clientId;
+  const clientSecret=provider?.clientSecret;
+  if(!clientId||!clientSecret)return NextResponse.json({ok:false,error:"Google sign-in is unavailable because GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is not available to the running server."},{status:503});
   const state=randomBytes(24).toString("hex");
   const redirect=`${process.env.APP_URL||"http://localhost:3000"}/api/auth/google/callback`;
   const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=${state}&access_type=offline&prompt=select_account`;
