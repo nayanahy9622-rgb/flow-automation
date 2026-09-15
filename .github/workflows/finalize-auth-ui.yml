@@ -1,0 +1,35 @@
+name: Finalize auth UI
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch frontend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('app/page.tsx')
+          s=p.read_text()
+          s=s.replace('useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance") refreshLive(active)},[active]);','useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance") refreshLive(active)},[active,sources]);')
+          old='<div className="head">\n          <div className="search">'
+          new='<div className="head">\n          <a className="secondary" href="/auth">Sign in / Sign up</a>\n          <div className="search">'
+          s=s.replace(old,new,1)
+          old2='<div className="profile"><div className="avatar">FO</div><div><b>Workspace owner</b><small>Operations</small></div><Settings size={16}/></div>'
+          new2='<div className="profile"><div className="avatar">TT</div><div><b>TenTran AI account</b><small>Sign in to own this workspace</small></div><Settings size={16}/></div>'
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+          PY
+      - name: Commit frontend patch and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx .github/workflows/finalize-auth-ui.yml
+          git commit -m "Connect live data to source status and add account entry point" || exit 0
+          git rm .github/workflows/finalize-auth-ui.yml
+          git commit -m "Remove one-shot auth UI workflow"
+          git push
