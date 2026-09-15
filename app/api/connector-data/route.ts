@@ -1,65 +1,9 @@
 import {NextRequest,NextResponse} from "next/server";
-import {getConnector,setConnector} from "@/lib/connectorStore";
-
+import {getConnectorAsync,setConnectorAsync} from "@/lib/connectorStore";
 const API_VERSION="2026-07";
-
-async function refreshShopify(shop:string,refreshToken:string){
- const res=await fetch(`https://${shop}.myshopify.com/admin/oauth/access_token`,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:process.env.SHOPIFY_CLIENT_ID||"",client_secret:process.env.SHOPIFY_CLIENT_SECRET||"",grant_type:"refresh_token",refresh_token:refreshToken}),cache:"no-store"});
- const json=await res.json().catch(()=>({}));
- if(!res.ok||!json.access_token)throw new Error("Shopify token refresh failed");
- return json;
-}
-
-async function shopifyData(){
- const auth=getConnector("shopify");
- if(!auth)return {status:401,error:"shopify_not_connected"};
- const shop=auth.providerData?.shop;
- if(!shop)return {status:500,error:"shopify_store_missing"};
- let token=auth.accessToken;
- if(auth.expiresAt&&auth.expiresAt<Date.now()+60_000){
-  if(!auth.refreshToken)return {status:401,error:"shopify_reauthorization_required"};
-  const refreshed=await refreshShopify(shop,auth.refreshToken);
-  token=String(refreshed.access_token);
-  setConnector("shopify",{...auth,accessToken:token,refreshToken:refreshed.refresh_token?String(refreshed.refresh_token):auth.refreshToken,expiresAt:refreshed.expires_in?Date.now()+Number(refreshed.expires_in)*1000:undefined,providerData:{...auth.providerData,shop,refreshTokenExpiresAt:refreshed.refresh_token_expires_in?String(Date.now()+Number(refreshed.refresh_token_expires_in)*1000):auth.providerData?.refreshTokenExpiresAt||""}});
- }
- const query=`query TenTranDashboard { shop { id name email myshopifyDomain } products(first:20) { nodes { id title status totalInventory } } orders(first:20,sortKey:PROCESSED_AT,reverse:true) { nodes { id name processedAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } } } customers(first:20) { nodes { id displayName email numberOfOrders } } }`;
- const res=await fetch(`https://${shop}.myshopify.com/admin/api/${API_VERSION}/graphql.json`,{method:"POST",headers:{"content-type":"application/json","X-Shopify-Access-Token":token},body:JSON.stringify({query}),cache:"no-store"});
- const json=await res.json().catch(()=>({}));
- if(!res.ok||json.errors)return {status:502,error:"shopify_api_error",details:json.errors||json};
- return {status:200,data:json.data};
-}
-
-async function razorpayRequest(path:string,keyId:string,keySecret:string){
- const auth=Buffer.from(`${keyId}:${keySecret}`).toString("base64");
- const res=await fetch(`https://api.razorpay.com/v1${path}`,{headers:{Authorization:`Basic ${auth}`},cache:"no-store"});
- const json=await res.json().catch(()=>({}));
- if(!res.ok)throw new Error(json?.error?.description||`Razorpay request failed (${res.status})`);
- return json;
-}
-
-async function razorpayData(){
- const auth=getConnector("razorpay");
- if(!auth)return {status:401,error:"razorpay_not_connected"};
- const keyId=auth.providerData?.keyId;
- const keySecret=auth.accessToken;
- if(!keyId||!keySecret)return {status:500,error:"razorpay_credentials_missing"};
- const [payments,orders,refunds]=await Promise.all([
-  razorpayRequest("/payments?count=20",keyId,keySecret),
-  razorpayRequest("/orders?count=20",keyId,keySecret),
-  razorpayRequest("/refunds?count=20",keyId,keySecret)
- ]);
- return {status:200,data:{mode:auth.providerData?.mode||"test",payments:payments.items||[],orders:orders.items||[],refunds:refunds.items||[]}};
-}
-
-export async function GET(req:NextRequest){
- const id=new URL(req.url).searchParams.get("id");
- if(!id)return NextResponse.json({ok:false,error:"missing_connector_id"},{status:400});
- try{
-  let result:any;
-  if(id==="shopify")result=await shopifyData();
-  else if(id==="razorpay")result=await razorpayData();
-  else return NextResponse.json({ok:false,error:"connector_not_implemented",message:`${id} does not have a live data provider yet.`},{status:501,headers:{"cache-control":"no-store"}});
-  if(result.status!==200)return NextResponse.json({ok:false,error:result.error,details:"details" in result?result.details:undefined},{status:result.status,headers:{"cache-control":"no-store"}});
-  return NextResponse.json({ok:true,connectorId:id,data:result.data},{headers:{"cache-control":"no-store"}});
- }catch(error){return NextResponse.json({ok:false,error:`${id}_request_failed`,message:error instanceof Error?error.message:"Request failed"},{status:502,headers:{"cache-control":"no-store"}});}
-}
+async function refreshShopify(shop:string,refreshToken:string){const res=await fetch(`https://${shop}.myshopify.com/admin/oauth/access_token`,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:process.env.SHOPIFY_CLIENT_ID||"",client_secret:process.env.SHOPIFY_CLIENT_SECRET||"",grant_type:"refresh_token",refresh_token:refreshToken}),cache:"no-store"});const json=await res.json().catch(()=>({}));if(!res.ok||!json.access_token)throw new Error("Shopify token refresh failed");return json;}
+async function shopifyData(){const auth=await getConnectorAsync("shopify");if(!auth)return {status:401,error:"shopify_not_connected"};const shop=auth.providerData?.shop;if(!shop)return {status:500,error:"shopify_store_missing"};let token=auth.accessToken;if(auth.expiresAt&&auth.expiresAt<Date.now()+60_000){if(!auth.refreshToken)return {status:401,error:"shopify_reauthorization_required"};const refreshed=await refreshShopify(shop,auth.refreshToken);token=String(refreshed.access_token);await setConnectorAsync("shopify",{...auth,accessToken:token,refreshToken:refreshed.refresh_token?String(refreshed.refresh_token):auth.refreshToken,expiresAt:refreshed.expires_in?Date.now()+Number(refreshed.expires_in)*1000:undefined,providerData:{...auth.providerData,shop,refreshTokenExpiresAt:refreshed.refresh_token_expires_in?String(Date.now()+Number(refreshed.refresh_token_expires_in)*1000):auth.providerData?.refreshTokenExpiresAt||""}});}
+const query=`query TenTranDashboard { shop { id name email myshopifyDomain } products(first:20) { nodes { id title status totalInventory } } orders(first:20,sortKey:PROCESSED_AT,reverse:true) { nodes { id name processedAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } } } customers(first:20) { nodes { id displayName email numberOfOrders } } }`;const res=await fetch(`https://${shop}.myshopify.com/admin/api/${API_VERSION}/graphql.json`,{method:"POST",headers:{"content-type":"application/json","X-Shopify-Access-Token":token},body:JSON.stringify({query}),cache:"no-store"});const json=await res.json().catch(()=>({}));if(!res.ok||json.errors)return {status:502,error:"shopify_api_error",details:json.errors||json};return {status:200,data:json.data};}
+async function razorpayRequest(path:string,keyId:string,keySecret:string){const auth=Buffer.from(`${keyId}:${keySecret}`).toString("base64");const res=await fetch(`https://api.razorpay.com/v1${path}`,{headers:{Authorization:`Basic ${auth}`},cache:"no-store"});const json=await res.json().catch(()=>({}));if(!res.ok)throw new Error(json?.error?.description||`Razorpay request failed (${res.status})`);return json;}
+async function razorpayData(){const auth=await getConnectorAsync("razorpay");if(!auth)return {status:401,error:"razorpay_not_connected"};const keyId=auth.providerData?.keyId,keySecret=auth.accessToken;if(!keyId||!keySecret)return {status:500,error:"razorpay_credentials_missing"};const [payments,orders,refunds]=await Promise.all([razorpayRequest("/payments?count=20",keyId,keySecret),razorpayRequest("/orders?count=20",keyId,keySecret),razorpayRequest("/refunds?count=20",keyId,keySecret)]);return {status:200,data:{mode:auth.providerData?.mode||"test",payments:payments.items||[],orders:orders.items||[],refunds:refunds.items||[]}};}
+export async function GET(req:NextRequest){const id=new URL(req.url).searchParams.get("id");if(!id)return NextResponse.json({ok:false,error:"missing_connector_id"},{status:400});try{let result:any;if(id==="shopify")result=await shopifyData();else if(id==="razorpay")result=await razorpayData();else return NextResponse.json({ok:false,error:"connector_not_implemented",message:`${id} does not have a live data provider yet.`},{status:501,headers:{"cache-control":"no-store"}});if(result.status!==200)return NextResponse.json({ok:false,error:result.error,details:"details" in result?result.details:undefined},{status:result.status,headers:{"cache-control":"no-store"}});return NextResponse.json({ok:true,connectorId:id,data:result.data},{headers:{"cache-control":"no-store"}});}catch(error){return NextResponse.json({ok:false,error:`${id}_request_failed`,message:error instanceof Error?error.message:"Request failed"},{status:502,headers:{"cache-control":"no-store"}});}}
