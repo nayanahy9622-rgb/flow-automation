@@ -8,7 +8,7 @@ export const automations:Automation[]=[];
 // replaces this with the authoritative persisted connection state on load.
 export const connectors:Connector[]=[
 {id:"shopify",name:"Shopify",category:"Commerce",status:"connected",description:"Orders, customers, products, inventory and webhooks"},
-{id:"woocommerce",name:"WooCommerce",category:"Commerce",status:"coming-soon",description:"Store, orders, customers and product data"},
+{id:"woocommerce",name:"WooCommerce",category:"Commerce",status:"available",description:"Store, orders, customers and product data"},
 {id:"amazon",name:"Amazon",category:"Marketplace",status:"coming-soon",description:"Marketplace orders and catalog data"},
 {id:"flipkart",name:"Flipkart",category:"Marketplace",status:"available",description:"Marketplace order and listing integration"},
 {id:"meesho",name:"Meesho",category:"Marketplace",status:"available",description:"Marketplace order and catalog integration"},
