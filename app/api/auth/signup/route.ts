@@ -1,12 +1,5 @@
 import {NextResponse} from "next/server";
 import {createSession,createUser,sessionCookie} from "@/lib/authStore";
-
-export async function POST(req:Request){
- try{
-  const body=await req.json().catch(()=>({}));
-  const name=String(body.name||"").trim(),email=String(body.email||"").trim().toLowerCase(),password=String(body.password||"");
-  if(!email||!/^\S+@\S+\.\S+$/.test(email))return NextResponse.json({ok:false,error:"Enter a valid email address."},{status:400});
-  if(password.length<8)return NextResponse.json({ok:false,error:"Password must be at least 8 characters."},{status:400});
-  const user=await createUser(name,email,password);const sid=await createSession(user.id);const r=NextResponse.json({ok:true,user:{id:user.id,name:user.name,email:user.email}});r.cookies.set(sessionCookie(sid));r.cookies.set({name:"tentran_workspace",value:user.id,httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/",maxAge:60*60*24*365});return r;
- }catch(error){return NextResponse.json({ok:false,error:error instanceof Error?error.message:"Unable to create account."},{status:400});}
-}
+import {migrateWorkspace} from "@/lib/connectorStore";
+import {cookies} from "next/headers";
+export async function POST(req:Request){try{const body=await req.json().catch(()=>({}));const name=String(body.name||"").trim(),email=String(body.email||"").trim().toLowerCase(),password=String(body.password||"");if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return NextResponse.json({ok:false,error:"Enter a valid email address."},{status:400});if(password.length<8)return NextResponse.json({ok:false,error:"Password must be at least 8 characters."},{status:400});const c=await cookies();const oldWorkspace=c.get("tentran_workspace")?.value;const user=await createUser(name,email,password);if(oldWorkspace)await migrateWorkspace(oldWorkspace,`user:${user.id}`);const sid=await createSession(user.id);const r=NextResponse.json({ok:true,user:{id:user.id,name:user.name,email:user.email}});r.cookies.set(sessionCookie(sid));r.cookies.set({name:"tentran_workspace",value:user.id,httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/",maxAge:60*60*24*365});return r;}catch(error){return NextResponse.json({ok:false,error:error instanceof Error?error.message:"Unable to create account."},{status:400});}}
