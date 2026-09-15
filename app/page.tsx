@@ -32,7 +32,7 @@ export default function App(){
   const [syncing,setSyncing]=useState(false);
 
   useEffect(()=>{refreshSources()},[]);
-  useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance") refreshLive(active)},[active]);
+  useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance") refreshLive(active)},[active,sources]);
 
   async function refreshSources(){
     try{const r=await fetch("/api/connectors",{cache:"no-store"});const j=await r.json();if(Array.isArray(j.data))setSources(j.data)}catch{}
@@ -68,7 +68,7 @@ export default function App(){
       </div>)}
       <div className="bottom">
         <div className="health"><i/><span>{connectedCount>0?`${connectedCount} live source${connectedCount===1?"":"s"}`:"No live sources yet"}</span></div>
-        <div className="profile"><div className="avatar">FO</div><div><b>Workspace owner</b><small>Operations</small></div><Settings size={16}/></div>
+        <div className="profile"><div className="avatar">TT</div><div><b>TenTran AI account</b><small>Sign in to own this workspace</small></div><Settings size={16}/></div>
       </div>
     </aside>
 
@@ -76,6 +76,7 @@ export default function App(){
       <header>
         <div><h1>{active}</h1><p>{subtitle(active)}</p></div>
         <div className="head">
+          <a className="secondary" href="/auth">Sign in / Sign up</a>
           <div className="search"><Search size={15}/><input suppressHydrationWarning placeholder="Search sources, orders, customers…" value={query} onChange={e=>setQuery(e.target.value)}/></div>
           <button className="icon" suppressHydrationWarning><BellDot/><span/></button>
           <button className="primary" suppressHydrationWarning onClick={()=>setShowCreate(true)}><Sparkles size={15}/> Build automation</button>
