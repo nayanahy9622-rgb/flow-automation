@@ -1,45 +1,18 @@
 "use client";
 
-import {useState} from "react";
-import {ArrowLeft,CheckCircle2,ExternalLink,Loader2,ShieldCheck} from "lucide-react";
+import {ArrowLeft,ExternalLink,ShieldCheck} from "lucide-react";
 
 export default function RazorpayConnectPage(){
- const [keyId,setKeyId]=useState("");
- const [keySecret,setKeySecret]=useState("");
- const [loading,setLoading]=useState(false);
- const [error,setError]=useState("");
- const [connected,setConnected]=useState(false);
- const [mode,setMode]=useState("");
-
- async function connect(){
-  setError("");
-  setLoading(true);
-  try{
-   const res=await fetch("/api/connectors/razorpay/connect",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({keyId,keySecret})});
-   const json=await res.json().catch(()=>({}));
-   if(!res.ok||!json.ok)throw new Error(json.details||json.error||"Could not connect Razorpay");
-   setMode(json.mode||"");
-   setConnected(true);
-   window.setTimeout(()=>window.location.href="/?connected=razorpay",700);
-  }catch(e){setError(e instanceof Error?e.message:"Could not connect Razorpay");}
-  finally{setLoading(false);}
- }
-
  return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:24,background:"#07090d",color:"#eef1f6",fontFamily:"Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"}}>
   <div style={{width:"min(680px,100%)",border:"1px solid #20252e",background:"#0c1016",borderRadius:16,padding:28,boxShadow:"0 30px 100px #0008"}}>
    <a href="/" style={{display:"inline-flex",alignItems:"center",gap:7,color:"#8e97a5",textDecoration:"none",fontSize:12,marginBottom:22}}><ArrowLeft size={15}/> Back to TenTran AI</a>
-   <div style={{display:"flex",alignItems:"center",gap:12}}><div style={{width:44,height:44,borderRadius:12,background:"#181d25",display:"grid",placeItems:"center",fontWeight:800,fontSize:20}}>R</div><div><h1 style={{fontSize:24,margin:0,letterSpacing:"-.03em"}}>Connect Razorpay</h1><p style={{margin:"6px 0 0",fontSize:12,color:"#77818f"}}>Connect your Razorpay merchant account to TenTran AI with your server-side API credentials.</p></div></div>
-   {connected?<div style={{marginTop:24,padding:18,border:"1px solid #25362c",background:"#0b130e",borderRadius:10,display:"flex",gap:10,alignItems:"center"}}><CheckCircle2 size={20}/><div><b>Razorpay connected</b><div style={{fontSize:12,color:"#84908a",marginTop:4}}>{mode} mode verified successfully. Redirecting…</div></div></div>:<>
-    <label style={{display:"block",marginTop:25,fontSize:11,color:"#9aa3af"}}>KEY ID</label>
-    <input value={keyId} onChange={e=>setKeyId(e.target.value)} placeholder="rzp_test_… or rzp_live_…" autoComplete="off" style={{marginTop:7,width:"100%",boxSizing:"border-box",background:"#090d12",border:"1px solid #252b34",borderRadius:9,padding:"13px 12px",color:"#eef1f6",outline:"none",fontSize:13}}/>
-    <label style={{display:"block",marginTop:17,fontSize:11,color:"#9aa3af"}}>KEY SECRET</label>
-    <input type="password" value={keySecret} onChange={e=>setKeySecret(e.target.value)} placeholder="Paste your Razorpay Key Secret" autoComplete="new-password" style={{marginTop:7,width:"100%",boxSizing:"border-box",background:"#090d12",border:"1px solid #252b34",borderRadius:9,padding:"13px 12px",color:"#eef1f6",outline:"none",fontSize:13}}/>
-    {error&&<div style={{marginTop:12,padding:11,border:"1px solid #4a2929",background:"#160d0d",borderRadius:8,color:"#e9a2a2",fontSize:12}}>{error}</div>}
-    <button onClick={connect} disabled={loading||!keyId||!keySecret} style={{marginTop:20,width:"100%",border:0,borderRadius:9,background:loading||!keyId||!keySecret?"#333942":"#f1f3f7",color:"#090b0e",padding:"13px 14px",fontWeight:750,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:7,cursor:loading?"wait":"pointer"}}>{loading?<><Loader2 size={14} style={{animation:"spin 1s linear infinite"}}/> Verifying credentials…</>:"Verify & connect Razorpay"}</button>
-   </>}
-   <div style={{marginTop:20,display:"flex",gap:9,alignItems:"flex-start",padding:14,border:"1px solid #20262f",background:"#0a0e14",borderRadius:9,color:"#737d8a",fontSize:11,lineHeight:1.6}}><ShieldCheck size={16}/><span>Your Key Secret is sent only to the TenTran AI server over HTTPS and is stored encrypted. Never paste it into GitHub or client-side code.</span></div>
-   <a href="https://dashboard.razorpay.com/app/keys" target="_blank" rel="noreferrer" style={{marginTop:15,display:"inline-flex",alignItems:"center",gap:6,color:"#9aa3af",fontSize:11,textDecoration:"none"}}>Open Razorpay API Keys <ExternalLink size={12}/></a>
+   <div style={{display:"flex",alignItems:"center",gap:12}}><div style={{width:44,height:44,borderRadius:12,background:"#181d25",display:"grid",placeItems:"center",fontWeight:800,fontSize:20}}>R</div><div><h1 style={{fontSize:24,margin:0,letterSpacing:"-.03em"}}>Connect Razorpay</h1><p style={{margin:"6px 0 0",fontSize:12,color:"#77818f"}}>Securely connect your Razorpay merchant account to TenTran AI using Razorpay OAuth.</p></div></div>
+   <div style={{marginTop:25,padding:18,border:"1px solid #20262f",background:"#0a0e14",borderRadius:10,fontSize:12,lineHeight:1.7,color:"#9aa3af"}}>
+    <b style={{color:"#eef1f6"}}>You don't need to enter your Razorpay API Key or Key Secret.</b><br/>You'll be sent to Razorpay, review the requested permissions, and approve TenTran AI. Your Razorpay credentials remain with Razorpay.
+   </div>
+   <a href="/api/connectors/razorpay/oauth" style={{marginTop:20,width:"100%",boxSizing:"border-box",borderRadius:9,background:"#f1f3f7",color:"#090b0e",padding:"13px 14px",fontWeight:750,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>Continue with Razorpay</a>
+   <div style={{marginTop:20,display:"flex",gap:9,alignItems:"flex-start",padding:14,border:"1px solid #20262f",background:"#0a0e14",borderRadius:9,color:"#737d8a",fontSize:11,lineHeight:1.6}}><ShieldCheck size={16}/><span>TenTran AI requests read-only Razorpay access for the connector dashboard. Access tokens are stored server-side and encrypted.</span></div>
+   <a href="https://razorpay.com/docs/partners/technology-partners/onboard-businesses/integrate-oauth/integration-steps/" target="_blank" rel="noreferrer" style={{marginTop:15,display:"inline-flex",alignItems:"center",gap:6,color:"#9aa3af",fontSize:11,textDecoration:"none"}}>Razorpay OAuth documentation <ExternalLink size={12}/></a>
   </div>
-  <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
  </main>;
 }
