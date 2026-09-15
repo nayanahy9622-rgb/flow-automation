@@ -6,6 +6,9 @@ import {automations,connectors} from "@/lib/data";
 
 type Source={id:string;name:string;category:string;status:string;description:string;meta?:string|null};
 type LiveBundle={connectorId:string;data:any};
+type CurrentUser={id:string;name:string;email:string};
+
+function AuthLoading(){return <div style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"#07090d",color:"#9da6b4",fontSize:13}}>Securing your workspace…</div>;}
 
 const nav=[
   ["OVERVIEW",[["Dashboard",LayoutDashboard]]],
@@ -30,9 +33,12 @@ export default function App(){
   const [sources,setSources]=useState<Source[]>(connectors as Source[]);
   const [live,setLive]=useState<Record<string,LiveBundle>>({});
   const [syncing,setSyncing]=useState(false);
+  const [user,setUser]=useState<CurrentUser|null>(null);
+  const [authChecked,setAuthChecked]=useState(false);
 
-  useEffect(()=>{refreshSources()},[]);
-  useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance") refreshLive(active)},[active,sources]);
+  useEffect(()=>{fetch("/api/auth/me",{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.user)setUser(j.user);else window.location.href="/auth"}).catch(()=>{window.location.href="/auth"}).finally(()=>setAuthChecked(true))},[]);
+  useEffect(()=>{if(user)refreshSources()},[user]);
+  useEffect(()=>{if(user&&(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance")) refreshLive(active)},[active,sources,user]);
 
   async function refreshSources(){
     try{const r=await fetch("/api/connectors",{cache:"no-store"});const j=await r.json();if(Array.isArray(j.data))setSources(j.data)}catch{}
@@ -58,6 +64,8 @@ export default function App(){
   const filteredSources=useMemo(()=>sources.filter(s=>!query||`${s.name} ${s.category} ${s.description}`.toLowerCase().includes(query.toLowerCase())),[sources,query]);
   const connectedCount=sources.filter(s=>s.status==="connected").length;
 
+  if(!authChecked||!user)return <AuthLoading/>;
+
   return <div className="app">
     <aside>
       <div className="logo"><span>◆</span> TenTran AI</div>
@@ -68,7 +76,7 @@ export default function App(){
       </div>)}
       <div className="bottom">
         <div className="health"><i/><span>{connectedCount>0?`${connectedCount} live source${connectedCount===1?"":"s"}`:"No live sources yet"}</span></div>
-        <div className="profile"><div className="avatar">TT</div><div><b>TenTran AI account</b><small>Sign in to own this workspace</small></div><Settings size={16}/></div>
+        <div className="profile"><div className="avatar">{user.name.slice(0,2).toUpperCase()}</div><div><b>{user.name}</b><small>{user.email}</small></div><Settings size={16}/></div>
       </div>
     </aside>
 
