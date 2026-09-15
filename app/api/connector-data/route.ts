@@ -29,13 +29,37 @@ async function shopifyData(){
  return {status:200,data:json.data};
 }
 
+async function razorpayRequest(path:string,keyId:string,keySecret:string){
+ const auth=Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+ const res=await fetch(`https://api.razorpay.com/v1${path}`,{headers:{Authorization:`Basic ${auth}`},cache:"no-store"});
+ const json=await res.json().catch(()=>({}));
+ if(!res.ok)throw new Error(json?.error?.description||`Razorpay request failed (${res.status})`);
+ return json;
+}
+
+async function razorpayData(){
+ const auth=getConnector("razorpay");
+ if(!auth)return {status:401,error:"razorpay_not_connected"};
+ const keyId=auth.providerData?.keyId;
+ const keySecret=auth.accessToken;
+ if(!keyId||!keySecret)return {status:500,error:"razorpay_credentials_missing"};
+ const [payments,orders,refunds]=await Promise.all([
+  razorpayRequest("/payments?count=20",keyId,keySecret),
+  razorpayRequest("/orders?count=20",keyId,keySecret),
+  razorpayRequest("/refunds?count=20",keyId,keySecret)
+ ]);
+ return {status:200,data:{mode:auth.providerData?.mode||"test",payments:payments.items||[],orders:orders.items||[],refunds:refunds.items||[]}};
+}
+
 export async function GET(req:NextRequest){
  const id=new URL(req.url).searchParams.get("id");
  if(!id)return NextResponse.json({ok:false,error:"missing_connector_id"},{status:400});
- if(id!=="shopify")return NextResponse.json({ok:false,error:"connector_not_implemented",message:`${id} does not have a live data provider yet.`},{status:501,headers:{"cache-control":"no-store"}});
  try{
-  const result=await shopifyData();
+  let result:any;
+  if(id==="shopify")result=await shopifyData();
+  else if(id==="razorpay")result=await razorpayData();
+  else return NextResponse.json({ok:false,error:"connector_not_implemented",message:`${id} does not have a live data provider yet.`},{status:501,headers:{"cache-control":"no-store"}});
   if(result.status!==200)return NextResponse.json({ok:false,error:result.error,details:"details" in result?result.details:undefined},{status:result.status,headers:{"cache-control":"no-store"}});
-  return NextResponse.json({ok:true,data:result.data},{headers:{"cache-control":"no-store"}});
- }catch(error){return NextResponse.json({ok:false,error:"shopify_request_failed",message:error instanceof Error?error.message:"Shopify request failed"},{status:502,headers:{"cache-control":"no-store"}});}
+  return NextResponse.json({ok:true,connectorId:id,data:result.data},{headers:{"cache-control":"no-store"}});
+ }catch(error){return NextResponse.json({ok:false,error:`${id}_request_failed`,message:error instanceof Error?error.message:"Request failed"},{status:502,headers:{"cache-control":"no-store"}});}
 }
