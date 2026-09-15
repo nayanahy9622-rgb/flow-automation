@@ -118,7 +118,14 @@ meesho:{id:"meesho",name:"Meesho",mode:"api-key",apiKeys:[process.env.MEESHO_API
 myntra:{id:"myntra",name:"Myntra",mode:"manual",manualNote:"Myntra partner APIs require approved seller integration and credentials issued by Myntra Partner Services."}
 };
 
-export function getProvider(id:string):Provider|undefined{return providers[id];}
+export function getProvider(id:string):Provider|undefined{
+  const provider=providers[id];
+  if(!provider)return undefined;
+  const envNames=provider.mode==="oauth"?[`${id.toUpperCase().replace(/-/g,"_")}_CLIENT_ID`,`${id.toUpperCase().replace(/-/g,"_")}_CLIENT_SECRET`]:[];
+  const aliases:Record<string,[string,string]>={amazon:["AMAZON_CLIENT_ID","AMAZON_CLIENT_SECRET"],google:["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],"google-sheets":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],gmail:["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],"google-ads":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],tiktok:["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"],stripe:["STRIPE_CLIENT_ID","STRIPE_SECRET_KEY"]};
+  const names=aliases[id]||envNames;
+  return provider.mode!=="oauth"?provider:{...provider,clientId:process.env[names[0]]||provider.clientId,clientSecret:process.env[names[1]]||provider.clientSecret};
+}
 export function providerState():string{return randomBytes(32).toString("hex");}
 export async function completeOAuth(id:string,code:string):Promise<void>{const p=getProvider(id);if(!p||p.mode!=="oauth"||!p.exchange||!p.clientId||!p.clientSecret)throw new Error("unsupported connector or missing credentials");const auth=await p.exchange(p.clientId,p.clientSecret,code,connectorCallback(id));if(p.summary){try{auth.meta=await p.summary(auth);}catch{auth.meta=null;}}const {setConnectorAsync}=await import("./connectorStore");await setConnectorAsync(id,auth);}
 export function saveApiKeyConnector(id:string,keys:string[]):void{setConnector(id,{accessToken:keys.join("|"),connectedAt:Date.now(),meta:"API credentials configured"});}
