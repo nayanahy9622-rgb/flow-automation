@@ -4,7 +4,7 @@ import {Automation,Connector} from "./types";
 export const automations:Automation[]=[];
 
 // Ecommerce connector catalog. A provider is never shown as connected until its real
-// authentication flow has completed. Shopify is the first live connector.
+// authentication flow has completed. Shopify and Razorpay are the first live connectors.
 export const connectors:Connector[]=[
 {id:"shopify",name:"Shopify",category:"Commerce",status:"available",description:"Orders, customers, products, inventory and webhooks"},
 {id:"woocommerce",name:"WooCommerce",category:"Commerce",status:"coming-soon",description:"Store, orders, customers and product data"},
@@ -12,7 +12,7 @@ export const connectors:Connector[]=[
 {id:"flipkart",name:"Flipkart",category:"Marketplace",status:"coming-soon",description:"Marketplace order and listing integration"},
 {id:"meesho",name:"Meesho",category:"Marketplace",status:"coming-soon",description:"Marketplace order and catalog integration"},
 {id:"whatsapp",name:"WhatsApp",category:"Messaging",status:"coming-soon",description:"Customer and campaign messaging"},
-{id:"razorpay",name:"Razorpay",category:"Payments",status:"coming-soon",description:"Payments, refunds and Indian payment events"},
+{id:"razorpay",name:"Razorpay",category:"Payments",status:"available",description:"Payments, refunds, orders and Indian payment events"},
 {id:"shiprocket",name:"Shiprocket",category:"Fulfillment",status:"coming-soon",description:"Shipping, tracking and fulfillment"},
 {id:"quick-commerce",name:"Quick Commerce",category:"Marketplace",status:"coming-soon",description:"Quick-commerce order and inventory integrations"}
 ];
