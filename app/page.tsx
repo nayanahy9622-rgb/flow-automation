@@ -32,14 +32,14 @@ export default function App(){
   const [syncing,setSyncing]=useState(false);
 
   useEffect(()=>{refreshSources()},[]);
-  useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data") refreshLive(active)},[active]);
+  useEffect(()=>{if(active==="Dashboard"||active==="Sales"||active==="Data"||active==="Finance") refreshLive(active)},[active]);
 
   async function refreshSources(){
     try{const r=await fetch("/api/connectors",{cache:"no-store"});const j=await r.json();if(Array.isArray(j.data))setSources(j.data)}catch{}
   }
 
   async function refreshLive(view:string){
-    if(view!=="Dashboard"&&view!=="Sales"&&view!=="Data")return;
+    if(view!=="Dashboard"&&view!=="Sales"&&view!=="Data"&&view!=="Finance")return;
     setSyncing(true);
     try{
       const connected=sources.filter(s=>s.status==="connected").slice(0,10);
@@ -92,7 +92,7 @@ export default function App(){
       {active==="API & Webhooks"&&<WebhookPage/>}
       {active==="Customers"&&<SimpleModule title="Customers" icon={Users} copy="Customer profiles, segments, lifecycle states and retention signals become automation context." cards={["Profiles","Segments","Lifecycle","LTV & retention"]}/>} 
       {active==="Inventory"&&<SimpleModule title="Inventory" icon={Package} copy="Turn stock, availability and replenishment signals into operational actions." cards={["Stock health","Reorder risk","Availability","Supplier actions"]}/>} 
-      {active==="Finance"&&<SimpleModule title="Finance" icon={Wallet} copy="Unify payments, refunds, reconciliation and cash-recovery workflows." cards={["Payments","Refunds","Reconciliation","Recovery"]}/>} 
+      {active==="Finance"&&<FinanceModule live={live.razorpay} syncing={syncing} refresh={()=>refreshLive("Finance")} go={setActive}/>} 
       {active==="Marketing"&&<SimpleModule title="Marketing" icon={Megaphone} copy="Coordinate acquisition, campaigns, audiences and performance across connected channels." cards={["Campaigns","Audiences","Attribution","Optimization"]}/>} 
       {active==="Settings"&&<SettingsPage/>}
 
@@ -180,8 +180,52 @@ function ConnectorPage({items,refresh}:{items:Source[];refresh:()=>void}){return
 
 function WebhookPage(){return <>
   <div className="topbar"><div><div className="eyebrow">EVENT GATEWAY</div><h2>API & Webhooks</h2><p>Inbound events should be verified, deduplicated and turned into automation triggers. Outbound actions should be observable.</p></div><div className="secure"><ShieldCheck size={17}/> Signed events</div></div>
-  <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Inbound event contract</h3><p>Minimal event envelope TenTran AI should persist.</p></div><Webhook size={18}/></div><div className="codeBlock">{`event_id\nprovider\ntopic\nreceived_at\nsignature_status\nentity_type\nentity_id\npayload_ref\nprocessing_status`}</div></section><section className="panel"><div className="panelHead"><div><h3>Processing rules</h3><p>Recommended production semantics.</p></div><ShieldCheck size={18}/></div>{["Verify signature","Check idempotency","Persist event","Normalize entity","Enqueue automation","Acknowledge quickly"].map(x=><div className="checkRow" key={x}><ShieldCheck size={14}/><span>{x}</span></div>)}</section></div>
+  <div className="grid2"><section className="panel"><div className="panelHead"><div><h3>Inbound event contract</h3><p>Minimal event envelope TenTran AI should persist.</p></div><Webhook size={18}/></div><div className="codeBlock">{`event_id
+provider
+topic
+received_at
+signature_status
+entity_type
+entity_id
+payload_ref
+processing_status`}</div></section><section className="panel"><div className="panelHead"><div><h3>Processing rules</h3><p>Recommended production semantics.</p></div><ShieldCheck size={18}/></div>{["Verify signature","Check idempotency","Persist event","Normalize entity","Enqueue automation","Acknowledge quickly"].map(x=><div className="checkRow" key={x}><ShieldCheck size={14}/><span>{x}</span></div>)}</section></div>
 </>}
+
+function FinanceModule({live,syncing,refresh,go}:{live?:LiveBundle;syncing:boolean;refresh:()=>void;go:(v:string)=>void}){
+  const data=live?.data||{};
+  const payments=Array.isArray(data.payments)?data.payments:[];
+  const orders=Array.isArray(data.orders)?data.orders:[];
+  const refunds=Array.isArray(data.refunds)?data.refunds:[];
+  const totalPayments=payments.reduce((s:number,p:any)=>s+Number(p.amount||0),0)/100;
+  const captured=payments.filter((p:any)=>String(p.status||"").toLowerCase()==="captured");
+  const failed=payments.filter((p:any)=>String(p.status||"").toLowerCase()==="failed");
+  const totalRefunds=refunds.reduce((s:number,r:any)=>s+Number(r.amount||0),0)/100;
+  const currency="INR";
+  const hasLive=Boolean(live);
+  const fmt=(v:number)=>money(v,currency);
+  return <>
+    <div className="topbar"><div><div className="eyebrow">RAZORPAY FINANCE</div><h2>{hasLive?"Live payment operations":"Razorpay finance"}</h2><p>{hasLive?`Pulled ${payments.length} payments, ${orders.length} orders and ${refunds.length} refunds from Razorpay ${data.mode||"test"} mode.`:"Connect Razorpay to load live payment, order and refund data."}</p></div><button className="secondary" onClick={refresh} disabled={syncing} suppressHydrationWarning><RefreshCw size={13}/>{syncing?" Syncing":" Sync Razorpay"}</button></div>
+    <div className="stats">
+      <Metric label="Payment volume sampled" value={payments.length?fmt(totalPayments):"—"} note={payments.length?`${payments.length} payment records`:"No payment records"}/>
+      <Metric label="Captured payments" value={payments.length?captured.length:"—"} note="Successful captured payments"/>
+      <Metric label="Failed payments" value={payments.length?failed.length:"—"} note="Recovery candidates"/>
+      <Metric label="Refund volume sampled" value={refunds.length?fmt(totalRefunds):"—"} note={refunds.length?`${refunds.length} refund records`:"No refund records"}/>
+    </div>
+    <div className="grid2">
+      <section className="panel"><div className="panelHead"><div><h3>Payments</h3><p>Real records returned by the connected Razorpay account.</p></div><BadgeIndianRupee size={18}/></div>{payments.length?<table><thead><tr><th>PAYMENT</th><th>STATUS</th><th>METHOD</th><th>AMOUNT</th></tr></thead><tbody>{payments.slice(0,20).map((p:any)=><tr key={p.id}><td><b>{p.id}</b></td><td>{p.status||"—"}</td><td>{p.method||"—"}</td><td>{fmt(Number(p.amount||0)/100)}</td></tr>)}</tbody></table>:<EmptyState title="No Razorpay payments yet" copy={hasLive?"Your Razorpay credentials are valid, but this test account has no payment records yet.":"Connect Razorpay to pull payment records."} onClick={go}/>}</section>
+      <section className="panel"><div className="panelHead"><div><h3>Orders & refunds</h3><p>Payment-linked operational records available from Razorpay.</p></div><Wallet size={18}/></div>
+        <div className="miniGrid">
+          <div className="miniCard"><b>{orders.length}</b><span>Orders sampled</span><small>Razorpay order records</small></div>
+          <div className="miniCard"><b>{refunds.length}</b><span>Refunds sampled</span><small>{refunds.length?fmt(totalRefunds):"No refund volume"}</small></div>
+          <div className="miniCard"><b>{data.mode||"test"}</b><span>API mode</span><small>Connected credential environment</small></div>
+          <div className="miniCard"><b>Live API</b><span>Connection</span><small>Authenticated against Razorpay</small></div>
+        </div>
+        {refunds.length?<table><thead><tr><th>REFUND</th><th>STATUS</th><th>AMOUNT</th></tr></thead><tbody>{refunds.slice(0,10).map((r:any)=><tr key={r.id}><td><b>{r.id}</b></td><td>{r.status||"—"}</td><td>{fmt(Number(r.amount||0)/100)}</td></tr>)}</tbody></table>:null}
+      </section>
+    </div>
+    <section className="panel"><div className="panelHead"><div><h3>Finance automation opportunities</h3><p>These can become executable once the corresponding actions and policies are configured.</p></div><Zap size={18}/></div>{recipes.filter(r=>r.title.includes("payment")||r.impact==="Cash recovery").map(r=><Opportunity key={r.title} recipe={r} onClick={()=>go("Automations")}/>)}<div className="checkRow"><ShieldCheck size={14}/><span>Razorpay credentials are kept server-side and are not rendered in this dashboard.</span></div></section>
+  </>
+}
 
 function SimpleModule({title,icon:Icon,copy,cards}:{title:string;icon:any;copy:string;cards:string[]}){return <>
   <section className="moduleHero"><div className="moduleIcon"><Icon size={24}/></div><div><div className="eyebrow">OPERATING MODULE</div><h2>{title}</h2><p>{copy}</p></div></section>
@@ -200,7 +244,7 @@ function Opportunity({recipe,onClick}:{recipe:any;onClick:()=>void}){return <but
 function SourcePill({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourcePill"><div><b>{source.name}</b><span className={`status ${source.status}`}>{source.status}</span></div><small>{count!=null?`${count} records sampled`:"Connected and ready"}</small></div>}
 function SourceCard({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourceCard"><div className="sourceTitle"><div className="connectorIcon">{source.name.slice(0,1)}</div><div><b>{source.name}</b><span>{source.category}</span></div><span className={`status ${source.status}`}>{source.status}</span></div><p>{source.description}</p><div className="sourceMeta"><span>{live?"Live pull complete":"Not pulled in this view"}</span><b>{count!=null?count:"—"}</b></div></div>}
 function EmptyState({title,copy,onClick}:{title:string;copy:string;onClick:()=>void}){return <div className="empty"><Database size={18}/><b>{title}</b><span>{copy}</span><button className="secondary" suppressHydrationWarning onClick={onClick}>Go there</button></div>}
-function countRecords(id:string,live?:LiveBundle){if(!live)return null;const d=live.data; if(id==="shopify")return (d?.data?.orders?.nodes||d?.orders?.nodes||[]).length+(d?.data?.products?.nodes||d?.products?.nodes||[]).length; if(Array.isArray(d?.products))return d.products.length; if(Array.isArray(d?.orders))return d.orders.length; if(Array.isArray(d?.data))return d.data.length; return 1}
+function countRecords(id:string,live?:LiveBundle){if(!live)return null;const d=live.data; if(id==="shopify")return (d?.data?.orders?.nodes||d?.orders?.nodes||[]).length+(d?.data?.products?.nodes||d?.products?.nodes||[]).length; if(id==="razorpay")return (d?.payments||[]).length+(d?.orders||[]).length+(d?.refunds||[]).length; if(Array.isArray(d?.products))return d.products.length; if(Array.isArray(d?.orders))return d.orders.length; if(Array.isArray(d?.data))return d.data.length; return 1}
 function money(v:any,currency?:string){const n=Number(v||0);if(!Number.isFinite(n))return "—";try{return new Intl.NumberFormat("en-IN",{style:"currency",currency:currency||"INR",maximumFractionDigits:2}).format(n)}catch{return `₹${n.toLocaleString("en-IN")}`}}
 function BellDot(){return <div className="bellDot" aria-label="Notifications"><span/></div>}
 function CheckCircle2Icon(){return <div className="okMark">✓</div>}
