@@ -243,9 +243,24 @@ function CreateModal({close}:{close:()=>void}){const [name,setName]=useState("")
 function Metric({label,value,note}:{label:string;value:any;note:string}){return <div className="card metric"><small>{label}</small><strong>{value}</strong><span>{note}</span></div>}
 function Opportunity({recipe,onClick}:{recipe:any;onClick:()=>void}){return <button className="opportunity" suppressHydrationWarning onClick={onClick}><div className="opIcon"><Sparkles size={13}/></div><div><b>{recipe.title}</b><small>{recipe.trigger} · {recipe.impact}</small></div><ChevronRight size={14}/></button>}
 function SourcePill({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourcePill"><div><b>{source.name}</b><span className={`status ${source.status}`}>{source.status}</span></div><small>{count!=null?`${count} records sampled`:"Connected and ready"}</small></div>}
-function SourceCard({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourceCard"><div className="sourceTitle"><div className="connectorIcon">{source.name.slice(0,1)}</div><div><b>{source.name}</b><span>{source.category}</span></div><span className={`status ${source.status}`}>{source.status}</span></div><p>{source.description}</p><div className="sourceMeta"><span>{live?"Live pull complete":"Not pulled in this view"}</span><b>{count!=null?count:"—"}</b></div></div>}
+function SourceCard({source,live}:{source:Source;live?:LiveBundle}){const count=countRecords(source.id,live);return <div className="sourceCard"><div className="sourceTitle"><div className="connectorIcon">{source.name.slice(0,1)}</div><div><b>{source.name}</b><span>{source.category}</span></div><span className={`status ${source.status}`}>{source.status}</span></div><p>{source.description}</p><div className="sourceMeta"><span>{live?"Live pull complete":"Not pulled in this view"}</span><b>{count!=null?count:"—"}</b></div><SourceDataPreview live={live}/></div>}
 function EmptyState({title,copy,onClick}:{title:string;copy:string;onClick:()=>void}){return <div className="empty"><Database size={18}/><b>{title}</b><span>{copy}</span><button className="secondary" suppressHydrationWarning onClick={onClick}>Go there</button></div>}
-function countRecords(id:string,live?:LiveBundle){if(!live)return null;const d=live.data; if(id==="shopify")return (d?.data?.orders?.nodes||d?.orders?.nodes||[]).length+(d?.data?.products?.nodes||d?.products?.nodes||[]).length; if(id==="razorpay")return (d?.payments||[]).length+(d?.orders||[]).length+(d?.refunds||[]).length; if(Array.isArray(d?.products))return d.products.length; if(Array.isArray(d?.orders))return d.orders.length; if(Array.isArray(d?.data))return d.data.length; return 1}
+function countRecords(id:string,live?:LiveBundle){if(!live)return null;let total=0;walkArrays(live.data,a=>{total+=Math.min(a.length,500)});return total>0?total:1}
+function walkArrays(node:any,cb:(a:any[])=>void){if(!node||typeof node!=="object")return;if(Array.isArray(node)){cb(node);return}for(const k of Object.keys(node))walkArrays(node[k],cb)}
+function labelFor(path:string[]){return path.filter(x=>x!=="nodes"&&x!=="data").join(" ")||path[path.length-1]||"items"}
+function summarizeRow(item:any):string{if(item===null||item===undefined)return"—";if(typeof item!=="object")return String(item);const parts:string[]=[];for(const k of Object.keys(item)){const v=item[k];if(v===null||v===undefined)continue;if(typeof v==="string"||typeof v==="number"||typeof v==="boolean"){parts.push(`${k}: ${v}`);if(parts.length>=4)break}}return parts.join(" · ")||Object.keys(item).slice(0,4).join(", ")}
+function extractArrays(node:any,path:string[],out:{label:string;rows:string[]}[]=[]):{label:string;rows:string[]}[]{
+ if(!node||typeof node!=="object")return out;
+ if(Array.isArray(node)){if(node.length){const label=labelFor(path);const rows=node.slice(0,3).map(summarizeRow).filter(Boolean);if(rows.length)out.push({label,rows});}return out;}
+ for(const k of Object.keys(node))extractArrays(node[k],[...path,k],out);
+ return out;
+}
+function SourceDataPreview({live}:{live?:LiveBundle}){
+ if(!live)return null;
+ const groups=extractArrays(live.data,[],[]).slice(0,4);
+ if(!groups.length)return null;
+ return <div style={{marginTop:12,borderTop:"1px solid #1d2330",paddingTop:10}}>{groups.map(g=><div key={g.label} style={{marginBottom:8,fontSize:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><b style={{color:"#aab3c1",textTransform:"uppercase",letterSpacing:".05em"}}>{g.label}</b><span style={{color:"#5d6571"}}>{g.rows.length} sampled</span></div>{g.rows.map((r,i)=><div key={i} style={{color:"#737d8a",lineHeight:1.5,background:"#0a0e14",borderRadius:6,padding:"4px 8px",marginBottom:3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:300}}>{r}</div>)}</div>)}</div>;
+}
 function money(v:any,currency?:string){const n=Number(v||0);if(!Number.isFinite(n))return "—";try{return new Intl.NumberFormat("en-IN",{style:"currency",currency:currency||"INR",maximumFractionDigits:2}).format(n)}catch{return `₹${n.toLocaleString("en-IN")}`}}
 function BellDot(){return <div className="bellDot" aria-label="Notifications"><span/></div>}
 function CheckCircle2Icon(){return <div className="okMark">✓</div>}

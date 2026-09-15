@@ -4,7 +4,7 @@ import * as os from "os";
 import * as path from "path";
 import {cookies} from "next/headers";
 import {getCurrentUser} from "@/lib/authStore";
-export type ConnectorAuth={accessToken:string;refreshToken?:string;expiresAt?:number;tokenType?:string;scope?:string;connectedAt:number;meta:string|null;providerData?:Record<string,string>};
+export type ConnectorAuth={accessToken:string;refreshToken?:string;expiresAt?:number;tokenType?:string;scope?:string;connectedAt:number;meta:string|null;providerData?:Record<string,string|boolean>};
 const BLOB_API="https://vercel.com/api/blob",BLOB_VERSION="12";
 function encryptionSecret(){const configured=process.env.ENCRYPTION_KEY;if(configured)return configured;if(process.env.NODE_ENV==="production")throw new Error("ENCRYPTION_KEY must be configured in production");return "flowos-local-development-only-key";}
 function hashKey(){return createHash("sha256").update(encryptionSecret()).digest();}
