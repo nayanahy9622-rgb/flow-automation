@@ -1,0 +1,1 @@
+import {NextResponse} from "next/server";import {workspace,listAudits} from "@/lib/runtimeStore";export async function GET(){const w=await workspace().catch(()=>null);if(!w)return NextResponse.json({error:"unauthorized"},{status:401});return NextResponse.json({data:await listAudits(w)});}
