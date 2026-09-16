@@ -8,8 +8,7 @@ export async function GET(){
   // Read the auth credentials at request time so a refreshed project environment
   // is honored even when the connector registry was initialized earlier.
   const clientId=process.env.GOOGLE_CLIENT_ID||provider?.clientId;
-  const clientSecret=process.env.GOOGLE_CLIENT_SECRET||provider?.clientSecret;
-  if(!clientId||!clientSecret)return NextResponse.json({ok:false,error:"Google sign-in is unavailable because GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is not available to the running server."},{status:503});
+  if(!clientId)return NextResponse.json({ok:false,error:"Google sign-in is unavailable because GOOGLE_CLIENT_ID is not available to the running server."},{status:503});
   const state=randomBytes(24).toString("hex");
   const redirect=`${process.env.APP_URL||"http://localhost:3000"}/api/auth/google/callback`;
   const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=${state}&access_type=offline&prompt=select_account`;
