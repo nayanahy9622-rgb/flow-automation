@@ -1,14 +1,14 @@
 import {NextResponse} from "next/server";
 import {cookies} from "next/headers";
 import {randomBytes} from "crypto";
-import {getProvider} from "@/lib/oauth";
 
 export async function GET(){
-  const provider=getProvider("google-sheets");
-  // Read the auth credentials at request time so a refreshed project environment
-  // is honored even when the connector registry was initialized earlier.
-  const clientId=process.env.GOOGLE_CLIENT_ID||provider?.clientId;
-  if(!clientId)return NextResponse.json({ok:false,error:"Google sign-in is unavailable because GOOGLE_CLIENT_ID is not available to the running server."},{status:503});
+  // Keep the auth entrypoint independent from the connector registry. The registry
+  // is initialized at module load and can retain an old environment snapshot after
+  // project variables are refreshed; OAuth credentials must be read per request.
+  const clientId=process.env.GOOGLE_CLIENT_ID;
+  const clientSecret=process.env.GOOGLE_CLIENT_SECRET;
+  if(!clientId||!clientSecret)return NextResponse.json({ok:false,error:"Google sign-in is unavailable because the running server has not loaded its Google OAuth credentials. Restart the preview after configuring GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."},{status:503});
   const state=randomBytes(24).toString("hex");
   const redirect=`${process.env.APP_URL||"http://localhost:3000"}/api/auth/google/callback`;
   const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=${state}&access_type=offline&prompt=select_account`;
