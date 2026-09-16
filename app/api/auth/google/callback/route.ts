@@ -2,15 +2,17 @@ import {NextResponse} from "next/server";
 import {cookies} from "next/headers";
 import {randomBytes} from "crypto";
 import {createSession,createUser,findUserByEmail,sessionCookie} from "@/lib/authStore";
+import {getProvider} from "@/lib/oauth";
 
 export async function GET(req:Request){
   const url=new URL(req.url);const code=url.searchParams.get("code");const state=url.searchParams.get("state");
   const stored=(await cookies()).get("tentran_google_state")?.value;
   if(!code||!state||!stored||state!==stored)return NextResponse.redirect(new URL("/auth?error=google_state",url));
   try{
-    const clientId=process.env.GOOGLE_CLIENT_ID;
-    const clientSecret=process.env.GOOGLE_CLIENT_SECRET;
-    if(!clientId||!clientSecret)throw new Error("Google sign-in is unavailable because the OAuth credentials are not available to the running server");
+    const provider=getProvider("google-sheets");
+    const clientId=process.env.GOOGLE_CLIENT_ID||provider?.clientId;
+    const clientSecret=process.env.GOOGLE_CLIENT_SECRET||provider?.clientSecret;
+    if(!clientId||!clientSecret)throw new Error("Google sign-in is unavailable because GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are not available to the running server");
     const redirect=`${process.env.APP_URL||url.origin}/api/auth/google/callback`;
     const tokenRes=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,code,redirect_uri:redirect,grant_type:"authorization_code"})});
     const token=await tokenRes.json();if(!tokenRes.ok||!token.access_token)throw new Error("Google token exchange failed");
