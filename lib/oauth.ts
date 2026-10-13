@@ -1,5 +1,6 @@
 import {randomBytes} from "crypto";
 import {getConnector, setConnector, ConnectorAuth} from "./connectorStore";
+import {flipkartData as officialFlipkartData} from "./flipkartProvider";
 
 export type ProviderMode = "oauth" | "api-key" | "manual";
 export type Provider = {
@@ -69,22 +70,7 @@ async function meeshoData(_auth: ConnectorAuth): Promise<never> {
 }
 
 async function flipkartData(auth: ConnectorAuth) {
-  const [key, secret] = auth.accessToken.split("|");
-  if (!key || !secret) throw new Error("Flipkart credentials incomplete");
-  const tokenRes = await fetch("https://api.flipkart.net/fskoken/fskoken", {
-    method: "POST",
-    headers: {"content-type": "application/x-www-form-urlencoded"},
-    body: new URLSearchParams({key, secret}),
-    cache: "no-store",
-  });
-  const tokenJson = await tokenRes.json().catch(() => ({}));
-  if (!tokenRes.ok || !tokenJson.access_token) throw new Error(`Flipkart token exchange failed: ${tokenRes.status}`);
-  const orders = await jsonFetch("https://api.flipkart.net/sellerservice/v3.0.0/orders/search", {
-    method: "POST",
-    headers: {authorization: `Bearer ${tokenJson.access_token}`, "content-type": "application/json", accept: "application/json"},
-    body: JSON.stringify({pagination: {pageSize: 5}}),
-  });
-  return {tokenIssuedAt: Date.now(), orders};
+  return officialFlipkartData(auth);
 }
 
 const googleScopes=["openid","https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/spreadsheets.readonly","https://www.googleapis.com/auth/drive.readonly","https://www.googleapis.com/auth/gmail.readonly","https://www.googleapis.com/auth/gmail.send"].join(" ");
