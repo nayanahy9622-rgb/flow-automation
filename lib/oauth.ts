@@ -106,8 +106,47 @@ export function getProvider(id:string):Provider|undefined{
   return provider.mode!=="oauth"?provider:{...provider,clientId:process.env[names[0]]||provider.clientId,clientSecret:process.env[names[1]]||provider.clientSecret};
 }
 export function providerState():string{return randomBytes(32).toString("hex");}
+export async function refreshConnectorAuth(id:string,auth:ConnectorAuth):Promise<ConnectorAuth>{
+  if(!auth.expiresAt||auth.expiresAt>Date.now()+120_000)return auth;
+  if(id==="shopify")throw new Error("Shopify token refresh must use the store-specific Shopify refresh flow.");
+  if(!auth.refreshToken)throw new Error("This connector token is expired and has no refresh token. Reconnect the provider.");
+  const p=getProvider(id);
+  if(!p?.clientId||!p.clientSecret)throw new Error("OAuth client credentials are missing; reconnect after configuring this provider.");
+  const family=["google-sheets","gmail","google-ads"].includes(id)?"google":id;
+  let endpoint="";
+  let form:Record<string,string>={};
+  if(family==="google"){
+    endpoint="https://oauth2.googleapis.com/token";
+    form={client_id:p.clientId,client_secret:p.clientSecret,refresh_token:auth.refreshToken,grant_type:"refresh_token"};
+  }else if(family==="amazon"){
+    endpoint="https://api.amazon.com/auth/o2/token";
+    form={client_id:p.clientId,client_secret:p.clientSecret,refresh_token:auth.refreshToken,grant_type:"refresh_token"};
+  }else if(family==="tiktok"){
+    endpoint="https://open.tiktokapis.com/v2/oauth/token/";
+    form={client_key:p.clientId,client_secret:p.clientSecret,refresh_token:auth.refreshToken,grant_type:"refresh_token"};
+  }else if(family==="klaviyo"){
+    endpoint="https://a.klaviyo.com/oauth/token";
+    form={client_id:p.clientId,client_secret:p.clientSecret,refresh_token:auth.refreshToken,grant_type:"refresh_token"};
+  }else if(family==="stripe"){
+    endpoint="https://connect.stripe.com/oauth/token";
+    form={client_secret:p.clientSecret,refresh_token:auth.refreshToken,grant_type:"refresh_token"};
+  }else if(family==="wix"){
+    endpoint="https://www.wixapis.com/oauth2/token";
+    form={client_id:p.clientId,client_secret:p.clientSecret,refresh_token:auth.refreshToken,grant_type:"refresh_token"};
+  }else{
+    throw new Error(`Automatic token refresh is not configured for ${p.name}. Reconnect the provider.`);
+  }
+  const response=await fetch(endpoint,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams(form),cache:"no-store"});
+  const json=await response.json().catch(()=>({}));
+  if(!response.ok||typeof json.access_token!=="string")throw new Error(`${p.name} token refresh failed (${response.status}). Reconnect the provider if the issue persists.`);
+  const updated:ConnectorAuth={...auth,accessToken:json.access_token,refreshToken:typeof json.refresh_token==="string"?json.refresh_token:auth.refreshToken,expiresAt:json.expires_in?Date.now()+Number(json.expires_in)*1000:undefined,tokenType:typeof json.token_type==="string"?json.token_type:auth.tokenType,scope:typeof json.scope==="string"?json.scope:auth.scope};
+  const {setConnectorAsync}=await import("./connectorStore");
+  await setConnectorAsync(id,updated);
+  return updated;
+}
+
 export async function completeOAuth(id:string,code:string):Promise<void>{const p=getProvider(id);if(!p||p.mode!=="oauth"||!p.exchange||!p.clientId||!p.clientSecret)throw new Error("unsupported connector or missing credentials");const auth=await p.exchange(p.clientId,p.clientSecret,code,connectorCallback(id));if(p.summary){try{auth.meta=await p.summary(auth);}catch{auth.meta=null;}}const {setConnectorAsync}=await import("./connectorStore");await setConnectorAsync(id,auth);}
 export function saveApiKeyConnector(id:string,keys:string[]):void{setConnector(id,{accessToken:keys.join("|"),connectedAt:Date.now(),meta:"API credentials configured"});}
 export function missingCredentials(p:Provider):string[]{if(p.mode==="oauth"){const missing:string[]=[];if(!p.clientId)missing.push(`${p.name} client ID`);if(!p.clientSecret)missing.push(`${p.name} client secret`);if(p.id==="shopify"&&!process.env.SHOPIFY_SHOP)missing.push("SHOPIFY_SHOP store domain");return missing;}if(p.mode==="api-key")return(p.apiKeys||[]).map((v,i)=>v?"":envVarFor(p.id,i)).filter(Boolean);return[];}
 export function envVarFor(id:string,index:number):string{const map:Record<string,string[]>={shopify:["SHOPIFY_CLIENT_ID","SHOPIFY_CLIENT_SECRET","SHOPIFY_SHOP"],"google-sheets":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],gmail:["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],"google-ads":["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"],meta:["META_CLIENT_ID","META_CLIENT_SECRET"],tiktok:["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"],klaviyo:["KLAVIYO_CLIENT_ID","KLAVIYO_CLIENT_SECRET"],stripe:["STRIPE_CLIENT_ID","STRIPE_SECRET_KEY"],bigcommerce:["BIGCOMMERCE_CLIENT_ID","BIGCOMMERCE_CLIENT_SECRET"],wix:["WIX_CLIENT_ID","WIX_CLIENT_SECRET"],amazon:["AMAZON_CLIENT_ID","AMAZON_CLIENT_SECRET"],razorpay:["RAZORPAY_KEY_ID","RAZORPAY_KEY_SECRET"],woocommerce:["WOO_STORE_URL","WOO_CONSUMER_KEY","WOO_CONSUMER_SECRET"],whatsapp:["WHATSAPP_ACCESS_TOKEN","WHATSAPP_PHONE_NUMBER_ID"],shiprocket:["SHIPROCKET_API_TOKEN"],delhivery:["DELHIVERY_API_TOKEN"],magento:["MAGENTO_STORE_URL","MAGENTO_ADMIN_TOKEN"],flipkart:["FLIPKART_API_KEY","FLIPKART_API_SECRET"],meesho:["MEESHO_API_KEY","MEESHO_API_SECRET"]};return map[id]?.[index]||"";}
-export async function pullConnectorData(id:string):Promise<unknown>{const p=getProvider(id);const auth=getConnector(id);if(!p)throw new Error("unknown connector");if(!auth)throw new Error("connector not connected");if(p.data)return p.data(auth);throw new Error("provider data adapter unavailable");}
+export async function pullConnectorData(id:string):Promise<unknown>{const p=getProvider(id);const {getConnectorAsync}=await import("./connectorStore");let auth=await getConnectorAsync(id);if(!p)throw new Error("unknown connector");if(!auth)throw new Error("connector not connected");if(id!=="shopify")auth=await refreshConnectorAuth(id,auth);if(p.data)return p.data(auth);throw new Error("provider data adapter unavailable");}
