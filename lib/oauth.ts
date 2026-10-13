@@ -63,16 +63,9 @@ function magentoData(auth: ConnectorAuth) {
   ]).then(([products, orders]) => ({products, orders}));
 }
 
-async function meeshoData(auth: ConnectorAuth) {
-  const [key, secret] = auth.accessToken.split("|");
-  if (!key || !secret) throw new Error("Meesho credentials incomplete");
-  const basic = Buffer.from(`${key}:${secret}`).toString("base64");
-  const h = {authorization: `Basic ${basic}`, accept: "application/json"};
-  const [orders, products] = await Promise.all([
-    jsonFetch("https://api.meesho.com/v1/orders?limit=5", {headers: h}),
-    jsonFetch("https://api.meesho.com/v1/products?limit=5", {headers: h}),
-  ]);
-  return {orders, products};
+async function meeshoData(_auth: ConnectorAuth): Promise<never> {
+  // Do not call guessed public endpoints. Enable only after official seller API access is confirmed.
+  throw new Error("Meesho has no verified official seller API adapter configured. Contact Meesho seller/partner support for API access.");
 }
 
 async function flipkartData(auth: ConnectorAuth) {
@@ -114,7 +107,7 @@ shiprocket:{id:"shiprocket",name:"Shiprocket",mode:"api-key",apiKeys:[process.en
 delhivery:{id:"delhivery",name:"Delhivery",mode:"api-key",apiKeys:[process.env.DELHIVERY_API_TOKEN],tokenFields:[{env:"DELHIVERY_API_TOKEN",label:"Delhivery API Token",placeholder:"(api token)",secret:true}],data:delhiveryData,validate:async(auth)=>{await delhiveryData(auth)}},
 magento:{id:"magento",name:"Magento",mode:"api-key",apiKeys:[process.env.MAGENTO_STORE_URL,process.env.MAGENTO_ADMIN_TOKEN],tokenFields:[{env:"MAGENTO_STORE_URL",label:"Magento store URL",placeholder:"https://store.example.com"},{env:"MAGENTO_ADMIN_TOKEN",label:"Admin API bearer token",placeholder:"(admin token)",secret:true}],data:magentoData,validate:async(auth)=>{await magentoData(auth)}},
 flipkart:{id:"flipkart",name:"Flipkart",mode:"api-key",apiKeys:[process.env.FLIPKART_API_KEY,process.env.FLIPKART_API_SECRET],tokenFields:[{env:"FLIPKART_API_KEY",label:"Flipkart API key",placeholder:"(api key)"},{env:"FLIPKART_API_SECRET",label:"Flipkart API secret",placeholder:"(api secret)",secret:true}],data:flipkartData,validate:async(auth)=>{await flipkartData(auth)}},
-meesho:{id:"meesho",name:"Meesho",mode:"api-key",apiKeys:[process.env.MEESHO_API_KEY,process.env.MEESHO_API_SECRET],tokenFields:[{env:"MEESHO_API_KEY",label:"Meesho API key",placeholder:"(api key)"},{env:"MEESHO_API_SECRET",label:"Meesho API secret",placeholder:"(api secret)",secret:true}],data:meeshoData,validate:async(auth)=>{await meeshoData(auth)}},
+meesho:{id:"meesho",name:"Meesho",mode:"manual",manualNote:"No verified public seller API adapter is configured. TenTran will not request credentials or claim a live connection until official API access and documentation are confirmed.",data:meeshoData},
 myntra:{id:"myntra",name:"Myntra",mode:"manual",manualNote:"Myntra partner APIs require approved seller integration and credentials issued by Myntra Partner Services."}
 };
 
