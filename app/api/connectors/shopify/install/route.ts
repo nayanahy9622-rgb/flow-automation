@@ -1,5 +1,6 @@
 import {createHmac,timingSafeEqual,randomBytes} from "crypto";
 import {NextResponse} from "next/server";
+import {getCurrentUser} from "@/lib/authStore";
 
 function equal(a:string,b:string):boolean{
  const left=Buffer.from(a,"utf8");
@@ -26,6 +27,7 @@ function verifyInstallRequest(url:URL,secret:string):boolean{
 }
 
 export async function GET(req:Request){
+ if(!(await getCurrentUser()))return NextResponse.redirect(new URL("/auth",req.url));
  const url=new URL(req.url);
  const shop=validShop(url.searchParams.get("shop"));
  const secret=process.env.SHOPIFY_CLIENT_SECRET;
