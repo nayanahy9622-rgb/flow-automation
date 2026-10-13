@@ -2,9 +2,11 @@ import {NextResponse} from "next/server";
 import {getProvider} from "@/lib/oauth";
 import {setConnectorAsync,ConnectorAuth} from "@/lib/connectorStore";
 import {validateFlipkart} from "@/lib/flipkartProvider";
+import {getCurrentUser} from "@/lib/authStore";
 
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;
+ if(!(await getCurrentUser()))return NextResponse.json({ok:false,error:"unauthorized"},{status:401,headers:{"cache-control":"no-store"}});
  const p=getProvider(id);
  if(!p)return NextResponse.json({ok:false,error:"unknown_connector"},{status:404});
  if(p.mode==="oauth")return NextResponse.json({ok:false,error:"This connector uses OAuth. Use the Connect button to authenticate with "+p.name+"."},{status:405});
