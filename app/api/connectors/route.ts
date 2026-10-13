@@ -2,8 +2,10 @@ import {NextResponse} from "next/server";
 import {connectors} from "@/lib/data";
 import {getConnectorAsync} from "@/lib/connectorStore";
 import {getProvider} from "@/lib/oauth";
+import {getCurrentUser} from "@/lib/authStore";
 
 export async function GET(){
+ if(!(await getCurrentUser()))return NextResponse.json({ok:false,error:"unauthorized"},{status:401,headers:{"cache-control":"no-store"}});
  const data=await Promise.all(connectors.map(async c=>{const activeIds=["shopify","razorpay","flipkart","woocommerce","whatsapp","shiprocket","magento","delhivery","amazon","meta","tiktok","klaviyo","stripe","bigcommerce","wix","google-sheets","gmail","google-ads"];const isActive=activeIds.includes(c.id);const auth=isActive?await getConnectorAsync(c.id):undefined;const connected=Boolean(auth);const p=getProvider(c.id);const mode=p?.mode||"unavailable";return {...c,mode:isActive?mode:"unavailable",manualNote:p?.manualNote||null,fields:p?.tokenFields||null,status:connected?"connected":c.status,meta:auth?.meta||null};}));
  return NextResponse.json({data},{headers:{"cache-control":"no-store"}});
 }
