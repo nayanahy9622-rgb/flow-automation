@@ -3,8 +3,7 @@ import {Automation,Connector} from "./types";
 // No seeded automation runs or business outcomes. Real records come from the database/runtime.
 export const automations:Automation[]=[];
 
-// Only list providers with an explicit status that matches their current adapter coverage.
-// "Available" means a real provider adapter exists; app registration and merchant access may still be required.
+// "Available" means an implemented live adapter exists; provider registration and account access may still be required.
 export const connectors:Connector[]=[
 {id:"shopify",name:"Shopify",category:"Commerce",status:"available",description:"OAuth and live store, orders, customers, products and inventory data"},
 {id:"woocommerce",name:"WooCommerce",category:"Commerce",status:"available",description:"REST API credentials; live store status, products, orders and customers"},
@@ -22,7 +21,7 @@ export const connectors:Connector[]=[
 {id:"tiktok",name:"TikTok",category:"Marketing",status:"available",description:"OAuth; live authorized profile metadata"},
 {id:"klaviyo",name:"Klaviyo",category:"Marketing",status:"available",description:"OAuth; live account metadata"},
 {id:"gmail",name:"Gmail",category:"Messaging",status:"coming-soon",description:"OAuth profile connection exists; message sync and send actions are not yet implemented"},
-{id:"google-sheets",name:"Google Sheets",category:"Data",status:"coming-soon",description:"OAuth is shared with Google Workspace; spreadsheet row sync is not yet implemented"},
+{id:"google-sheets",name:"Google Sheets",category:"Data",status:"available",description:"OAuth; lists real spreadsheets and syncs up to 100 rows from each of the 10 most recently modified spreadsheets"},
 {id:"google-ads",name:"Google Ads",category:"Marketing",status:"coming-soon",description:"OAuth/data adapter still needs Google Ads API developer token and customer reporting implementation"},
 {id:"wix",name:"Wix Stores",category:"Commerce",status:"coming-soon",description:"OAuth flow exists; live Wix store data adapter is not yet implemented"},
 {id:"quick-commerce",name:"Quick Commerce",category:"Marketplace",status:"coming-soon",description:"No verified provider-specific adapter configured"}
