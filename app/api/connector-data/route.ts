@@ -3,6 +3,7 @@ import { getConnectorAsync, setConnectorAsync } from "@/lib/connectorStore";
 import { getProvider, refreshConnectorAuth } from "@/lib/oauth";
 import { flipkartData } from "@/lib/flipkartProvider";
 import { googleSheetsData } from "@/lib/googleSheetsProvider";
+import { gmailData } from "@/lib/gmailProvider";
 import { getCurrentUser } from "@/lib/authStore";
 
 const API_VERSION = "2026-07";
@@ -84,6 +85,10 @@ export async function GET(req: NextRequest) {
 
     if (id === "google-sheets") {
       const data = await googleSheetsData(auth);
+      return NextResponse.json({ ok: true, connectorId: id, data }, { headers: { "cache-control": "no-store" } });
+    }
+    if (id === "gmail") {
+      const data = await gmailData(auth);
       return NextResponse.json({ ok: true, connectorId: id, data }, { headers: { "cache-control": "no-store" } });
     }
     if (id === "flipkart") {
