@@ -1,6 +1,7 @@
 import {randomBytes} from "crypto";
 import {NextResponse} from "next/server";
 import {connectorCallback} from "@/lib/oauth";
+import {getCurrentUser} from "@/lib/authStore";
 
 function validShop(value:string|null):string|null{
  if(!value)return null;
@@ -9,6 +10,7 @@ function validShop(value:string|null):string|null{
 }
 
 export async function GET(req:Request){
+ if(!(await getCurrentUser()))return NextResponse.redirect(new URL("/auth",req.url));
  const shop=validShop(new URL(req.url).searchParams.get("shop"));
  const clientId=process.env.SHOPIFY_CLIENT_ID;
  if(!shop)return new NextResponse("Invalid Shopify store domain",{status:400});
