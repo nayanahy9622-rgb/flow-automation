@@ -20,8 +20,8 @@ export const connectors:Connector[]=[
 {id:"meta",name:"Meta Ads",category:"Marketing",status:"available",description:"OAuth; live Meta account and ad-account metadata"},
 {id:"tiktok",name:"TikTok",category:"Marketing",status:"available",description:"OAuth; live authorized profile metadata"},
 {id:"klaviyo",name:"Klaviyo",category:"Marketing",status:"available",description:"OAuth; live account metadata"},
-{id:"gmail",name:"Gmail",category:"Messaging",status:"coming-soon",description:"OAuth profile connection exists; message sync and send actions are not yet implemented"},
-{id:"google-sheets",name:"Google Sheets",category:"Data",status:"available",description:"OAuth; lists real spreadsheets and syncs up to 100 rows from each of the 10 most recently modified spreadsheets"},
+{id:"gmail",name:"Gmail",category:"Messaging",status:"available",description:"OAuth; syncs live Gmail profile and latest message metadata/snippets; send actions are not implemented"},
+{id:"google-sheets",name:"Google Sheets",category:"Data",status:"available",description:"OAuth; lists real spreadsheets and syncs up to 100 rows from the first tab of the 10 most recently modified spreadsheets"},
 {id:"google-ads",name:"Google Ads",category:"Marketing",status:"coming-soon",description:"OAuth/data adapter still needs Google Ads API developer token and customer reporting implementation"},
 {id:"wix",name:"Wix Stores",category:"Commerce",status:"coming-soon",description:"OAuth flow exists; live Wix store data adapter is not yet implemented"},
 {id:"quick-commerce",name:"Quick Commerce",category:"Marketplace",status:"coming-soon",description:"No verified provider-specific adapter configured"}
